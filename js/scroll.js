@@ -7,7 +7,33 @@ document.addEventListener('DOMContentLoaded', function() {
         li[i].addEventListener('click', function() {
             var input = this.getElementsByTagName('input'); //inputタグの取得
             var frame = document.getElementById('frame');   //iframeタグの取得
-            frame.src = input[0].value; //inputタグの値（ゲームアプリのURL）をiframeのsrc属性にセット
+            const URL = input[0].value;   //ゲームアプリのURLを取得
+            const DISC = input[1].value;   //ゲームアプリの概要説明を取得
+            
+            //URLが未設定（該当アプリ無し）の場合の処理
+            if (URL == ""){
+                $('#app_name').html("Sorry, Please wait!"); //アプリ名をセット
+                $('#app_description').html(""); //アプリの説明をセット
+                frame.src = ""; //URLをiframeのsrc属性にセット
+                return;
+            }
+            
+            frame.src = URL; //URLをiframeのsrc属性にセット
+            
+            //Ajax通信でアプリ名とアプリ概要の情報を取得する
+            $.ajax({
+                type: "GET",
+                cache: false,
+                url: URL,
+                datatype:'html'
+            })
+            .done( (data) => {
+                let html = $($.parseHTML(data));    //HTMLデータに変換
+                let title = html.filter('title')[0].innerHTML;  //タイトルタグの情報を取得
+                $('#app_name').html(title); //アプリ名をセット
+                $('#app_description').html(DISC); //アプリの説明をセット
+            })
+            ;
         });
     };
 });
