@@ -9,7 +9,6 @@
     <script src="js/lib/jquery-3.7.1.min.js"></script>
     <script src="js/basic_setting.js" type="text/javascript"></script>
     <script src="js/scroll.js" type="text/javascript"></script>
-    <script src="js/ajax_script.js" type="text/javascript"></script>
   </head>
   <body>
     <header>
@@ -45,45 +44,54 @@
     </header>
     <main>
       <div class="box">
+        <h2>ヒューマンネット上本町センターの利用者さんが企画・設計・製造したアプリケーションです。</h2>
         <h2>遊びたいゲームの画像をクリックしてください</h2>
         <ul id="scroll_content">
           <li class="item">
             <input type="hidden" value="./games/avoider/avoider.html" />
+            <input type="hidden" value="スペースキーを押すと前進します。後戻りはできません！" />
             <a href="#"><img src="./img/takeiri_game1.jpg" /></a>
-            <p>どきどき前進ゲーム</p>
+            <p>避けゲー</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx2" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx3" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx4" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx5" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx6" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx7" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <input type="hidden" value="/games/xxx8" />
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
             <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
@@ -95,7 +103,7 @@
       <div id="game_frame">
         <!--アプリを実行するディスプレイ-->
         <iframe id="frame" src="" frameborder="0" width="100%" height="600"></iframe>
-        <p>アプリに関する説明</p>
+        <p id="app_description">アプリに関する説明</p>
       </div>
     </main>
     <footer></footer>
