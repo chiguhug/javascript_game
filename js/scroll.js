@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 let html = $($.parseHTML(data));    //HTMLデータに変換
                 let title = html.filter('title')[0].innerHTML;  //タイトルタグの情報を取得
                 let desc = html.filter('#game_description')[0].value;  //タイトルタグの情報を取得
-                console.log("debug:" + desc);
                 $('#app_name').html(title); //アプリ名をセット
                 $('#app_description').html(desc); //アプリの説明をセット
             })
