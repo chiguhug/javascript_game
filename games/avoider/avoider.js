@@ -1,5 +1,6 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
+//初期設定
 let x=20;
 let stage=1;
 let Pressed = false;
