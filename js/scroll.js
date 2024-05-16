@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var input = this.getElementsByTagName('input'); //inputタグの取得
             var frame = document.getElementById('frame');   //iframeタグの取得
             const URL = input[0].value;   //ゲームアプリのURLを取得
-            const DISC = input[1].value;   //ゲームアプリの概要説明を取得
             
             //URLが未設定（該当アプリ無し）の場合の処理
             if (URL == ""){
@@ -30,8 +29,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .done( (data) => {
                 let html = $($.parseHTML(data));    //HTMLデータに変換
                 let title = html.filter('title')[0].innerHTML;  //タイトルタグの情報を取得
+                let desc = html.filter('#game_description')[0].value;  //タイトルタグの情報を取得
+                console.log("debug:" + desc);
                 $('#app_name').html(title); //アプリ名をセット
-                $('#app_description').html(DISC); //アプリの説明をセット
+                $('#app_description').html(desc); //アプリの説明をセット
             })
             ;
         });
