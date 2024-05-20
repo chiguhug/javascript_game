@@ -8,8 +8,7 @@ body {
 	font-family: "Hachi Maru Pop", cursive;
 	font-weight: 400;
 	font-style: normal;
-	background-image: url("../img/mesaipazzl5_4.jpg");
-	/* background-color: white; */
+	background-color: white;
 	min-height: 100vh;	/*画面の高さに対して100%の高さを持つように設定 */
 	margin: 0 auto;	/*上下の余白は0、左右の余白を自動的に設定 */
 	max-width: 80%;
