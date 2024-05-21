@@ -20,8 +20,24 @@ document.addEventListener("keyup", keyUpHandler, false);
 function draw() {
 
   if (!gameover){
-    img.src = "res/001d.png";
-     ctx.drawImage(img, x-20, 140,40,40);
+    if(!Re){
+      if(x%20<=10){
+        img.src = "res/キャラ001_A d.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else{
+        img.src = "res/キャラ001_Bd.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }
+    }else{
+      if(x%20<=10){
+        img.src = "res/キャラ001_C d.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else{
+        img.src = "res/キャラ001_Dd.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }
+
+    }
   }else if(deatheffect<=20){
   ctx.beginPath();
   ctx.ellipse(x, 160, 20, 20-deatheffect, Math.PI, 0, Math.PI*2);
