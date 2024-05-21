@@ -11,18 +11,20 @@ let gameRunning = true;
 let deatheffect = 0;
 let gamewait = false;
 let gameover=false;
-var img = new Image();
 
+document.write
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
 //自機表示
 function draw() {
-
   if (!gameover){
-    img.src = "res/001d.png";
-     ctx.drawImage(img, x-20, 140,40,40);
-  }else if(deatheffect<=20){
+  ctx.beginPath();
+  ctx.arc(x+Rex, 160, 20, 0,Math.PI*2, false);
+  ctx.fillStyle = "#0095DD";
+  ctx.fill();
+  ctx.closePath();
+}else if(deatheffect<=20){
   ctx.beginPath();
   ctx.ellipse(x, 160, 20, 20-deatheffect, Math.PI, 0, Math.PI*2);
   ctx.fillStyle = "#DDDDDD";
@@ -31,9 +33,10 @@ function draw() {
   deatheffect=deatheffect+0.2;
 }
   ctx.beginPath();
-  ctx.rect(0, 0, 1200, 320);
-  ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
+  ctx.rect(0, 0, 1200, 1200);
+  ctx.fillStyle = "rgba(0, 0, 255)";
   ctx.stroke();
+  ctx.fill();
   ctx.closePath();
 }
 //リセット処理
@@ -511,5 +514,4 @@ if(evt<200){
   ctx.closePath();
  
 }
-
 }
