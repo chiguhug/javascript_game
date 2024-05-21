@@ -21,19 +21,31 @@ function draw() {
 
   if (!gameover){
     if(!Re){
-      if(x%20<=10){
+      if(x%40<=10){
         img.src = "res/キャラ001_A d.png";
         ctx.drawImage(img, x-20, 140,40,40);
-      }else{
+      }else if(x%40<=20){
+        img.src = "res/キャラ001_Ed.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else if(x%40<=30){
         img.src = "res/キャラ001_Bd.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else{
+        img.src = "res/キャラ001_Ed.png";
         ctx.drawImage(img, x-20, 140,40,40);
       }
     }else{
-      if(x%20<=10){
+      if(x%40<=10){
         img.src = "res/キャラ001_C d.png";
         ctx.drawImage(img, x-20, 140,40,40);
-      }else{
+      }else if(x%40<=20){
+        img.src = "res/キャラ001_Fd.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else if(x%40<=30){
         img.src = "res/キャラ001_Dd.png";
+        ctx.drawImage(img, x-20, 140,40,40);
+      }else{
+        img.src = "res/キャラ001_Fd.png";
         ctx.drawImage(img, x-20, 140,40,40);
       }
 
