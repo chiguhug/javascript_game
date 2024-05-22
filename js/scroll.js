@@ -34,6 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#app_description').html(desc); //アプリの説明をセット
             })
             ;
+            //ゲーム画面が表示されるようにスクロールする
+            let frame_rect = frame.getBoundingClientRect();
+            console.log(frame_rect.top);
+            window.scrollTo({
+                top: frame_rect.top,
+                left: 0,
+                behavior: 'smooth'
+            });
         });
     };
 });

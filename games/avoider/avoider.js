@@ -137,6 +137,8 @@ switch(stage){
     tre();
   break;
 }
+window.focus(); //画面をフォーカスさせる
+
 draw();
 if (Re) {
   Rex=Rex+Rem;
