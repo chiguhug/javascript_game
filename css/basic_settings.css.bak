@@ -76,10 +76,9 @@ ul li a {
 }
 
 /*マウスをホバーした際の設定 */
-
-/* li a:hover {
+li a:hover {
 	background-color: lightgray;
-	} */
+}
 
 main {
 	background-color: rgba(255, 255, 255, 0.8);
@@ -87,56 +86,6 @@ main {
 	margin: 0 auto;
 	width: 90%;
 }
-
-/*きらっと光る*/
-.btnshine{
-	/*キラッと光る基点とするためrelativeを指定*/
-position: relative;
-	/*ボタンの形状*/  
-/* display:inline-block; */
-	background: #333;
-	color: #fff;
-	/*padding: 10px 30px;*/
-	text-decoration: none;
-	outline: none;
-	overflow: hidden;
-}
-
-/*キラッと光る*/
-.btnshine::before {
-	content: '';
-	/*絶対配置でキラッと光るの位置を決める*/
-	position: absolute;
-	top: 0;
-	left: -75%;
-	/*キラッと光る形状*/
-	width: 50%;
-	height: 100%;
-	background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255, 255, 255, 0.7) 100%);
-	transform: skewX(-25deg);
-}
-
-/*hoverした際の移動のアニメーション*/
-.btnshine:hover::before {
-	animation: shine 0.7s;
-}
-
-@keyframes shine {
-  100% {
-    left: 125%;
-  }
-}
-
-
-
-/*ホバーで画像が拡大*/
-.image:hover ::after {
-	opacity: 1;
-}
-.image:hover  img{
-	transform: scale(1.3);
-}
-
 
 /*見出しに関する設定*/
 .headword {

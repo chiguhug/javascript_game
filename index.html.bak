@@ -11,31 +11,31 @@
     <script src="js/scroll.js" type="text/javascript"></script>
   </head>
   <body>
-        <header>
-      <div class="heading" >
+    <header>
+      <div class="heading">
         <h1>ゲーム一覧</h1>
       </div>
       <div>
         <ul>
-          <li><a href="https://human-osaka.net/" class="btnshine">ホーム</a></li>
+          <li><a href="https://human-osaka.net/">ホーム</a></li>
           <li>
-            <a href="https://human-osaka.net/btypeoffice/" class="btnshine"
+            <a href="https://human-osaka.net/btypeoffice/"
               >就労継続支援B型事業所</a
             >
           </li>
           <li>
-            <a href="https://human-osaka.net/chiguhug/" class="btnshine"
+            <a href="https://human-osaka.net/chiguhug/"
             >クリエーターズチグハグ</a
             >
           </li>
           <li>
-            <a href="https://www.humannet-edu.com/" class="btnshine"
+            <a href="https://www.humannet-edu.com/"
             >Java専門のプログラミングスクール</a
             >
           </li>
-          <li><a href="https://human-osaka.net/contact/" class="btnshine">お問い合わせ</a></li>
+          <li><a href="https://human-osaka.net/contact/">お問い合わせ</a></li>
           <li>
-            <a href="https://human-osaka.net/request/" class="btnshine"
+            <a href="https://human-osaka.net/request/"
             >お仕事のご依頼・お問い合わせ</a
             >
           </li>
@@ -49,51 +49,49 @@
         <ul id="scroll_content">
           <li class="item">
             <input type="hidden" value="./games/avoider/avoider.html" />
-            <div class="image">
-              <a href="#"><img src="./img/takeiri_game1.jpg" /></a>
-            </div>
+            <a href="#"><img src="./img/takeiri_game1.jpg" /></a>
             <p>避けゲー</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
-            <p>タイトル</p>
-          </li>          
-          <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
           <li class="item">
-            <div class="image">
-              <a href="#"><img src="./img/comingsoon.jpg" /></a>
-            </div>
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
+            <p>タイトル</p>
+          </li>
+          <li class="item">
+            <input type="hidden" value="" />  <!--アプリのURL-->
+            <input type="hidden" value="" />  <!--アプリ概要説明-->
+            <a href="#"><img src="./img/comingsoon.jpg" /></a>
             <p>タイトル</p>
           </li>
         </ul>
