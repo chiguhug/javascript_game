@@ -35,10 +35,9 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             ;
             //ゲーム画面が表示されるようにスクロールする
-            let frame_rect = frame.getBoundingClientRect();
-            console.log(frame_rect.top);
+            const pos = $('#frame').position();
             window.scrollTo({
-                top: frame_rect.top,
+                top: pos.top,
                 left: 0,
                 behavior: 'smooth'
             });
