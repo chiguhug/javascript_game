@@ -15,6 +15,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 $('#app_description').html(""); //アプリの説明をセット
                 frame.src = ""; //URLをiframeのsrc属性にセット
                 return;
+            } else if (URL == "scratch") {
+                $('#app_name').html("Please choose your favorite game!"); //アプリ名をセット
+                $('#app_description').html(""); //アプリの説明をセット
+                frame.src = ""; //URLをiframeのsrc属性にセット
+                return;
             }
             
             frame.src = URL; //URLをiframeのsrc属性にセット
