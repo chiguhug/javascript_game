@@ -9,7 +9,7 @@ let keyl = false;
 let shot = false;
 let zanki = 3;
 let stopeffect = 0;
-let stop = false;
+let st = false;
 let newstage = true;
 let clear = true;
 let miss = false;
@@ -17,10 +17,11 @@ let gameover = false;
 let tx = 0;
 let tmove = 1;
 let tcount = 50;
+let retflag = false;
 let tact = 0;
 var teki = [[], [], [], [], []];
 var tama = [[], [], [], [], []];
-var img = new Image();
+
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
@@ -30,7 +31,7 @@ class tekic {
   constructor(_alive, _x, _y, _image) {
     this.x = _x;
     this.y = _y;
-    this.teki = _image;
+    this.image = _image;
     this.alive = _alive;
   }
 }
@@ -78,19 +79,19 @@ for (i = 0; i <= 4; i++) {
   for (j = 0; j <= 9; j++) {
     switch (i) {
       case 0:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv1_32x24.png"');
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv5_32x24.png");
         break;
       case 1:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv2_32x24.png"');
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv4_32x24.png");
         break;
       case 2:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv3_32x24.png"');
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv3_32x24.png");
         break;
       case 3:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv4_32x24.png"');
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv2_32x24.png");
         break;
       case 4:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv5_32x24.png"');
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv1_32x24.png");
         break;
     }
   }
@@ -115,13 +116,14 @@ for (j = 0; j <= 4; j++) {
 
 //自機表示・枠表示
 function draw() {
+  jikiimg = new Image();
   if (!miss) {
-    img.src = "res/jiki_32x24.png";
+    jikiimg.src = "res/jiki_32x24.png";
     ctx.globalAlpha = 1;
-    ctx.drawImage(img, x, 450, 40, 40);
+    ctx.drawImage(jikiimg, x, 450, 40, 40);
   } else {
-    img.src = "res/jiki_miss_32x24.png";
-    ctx.drawImage(img, x - 10, 450 - 10, 60, 60);
+    jikimg.src = "res/jiki_miss_32x24.png";
+    ctx.drawImage(jikiimg, x - 10, 450 - 10, 60, 60);
     misseffect++;
   }
   ctx.beginPath();
@@ -144,18 +146,31 @@ function draw() {
 }
 //自弾処理
 function shotmove() {
-  img.src = "res/tamaji_16x12.png";
-  ctx.drawImage(img, sx, sy, 1, 10);
+  tamaimg = new Image();  
+  tamaimg.src = "res/tamaji_16x12.png";
+  ctx.drawImage(tamaimg, sx, sy, 1, 10);
   sy = sy - 2;
+  for (i=0;i<=4;i++){
+    if (sy<=i*50+74&&sy>i*50+40){
+for (j=0;j<=9;j++){
+  if (sx>=teki[i][j].x+tx&&sx<=teki[i][j].x+tx+32&&teki[i][j].alive){
+    teki[i][j].alive=false;
+    score=score+(5-i)*100;
+    shot=false
+  }
+}}
+  }
+
+
   if (sy < 0) {
     shot = false;
   }
 }
 //敵・弾リセット処理
 function nextstage() {
-  if (!stop) {
+  if (!st) {
     clear = false;
-    stop = true;
+    st = true;
     stopeffect = 0;
   }
   for (i = 0; i <= 4; i++) {
@@ -164,9 +179,11 @@ function nextstage() {
     }
   }
   stage++;
+  tcount=50
   x = 0;
   tekix = 0;
   i = 0;
+  shot=false;
   for (j = 0; j <= 30; j++) {
     tama[i][j].active = false;
   }
@@ -188,18 +205,47 @@ function tdrow() {
   for (i = 0; i <= 4; i++) {
     for (j = 0; j <= 9; j++) {
       if (teki[i][j].alive) {
-        console.log(teki[i][j].teki);
-        img.src = teki[i][j].teki;
-        ctx.drawImage(img, teki[i][j].x + 50, teki[i][j].y + 50,32,24);
+        tekiimg = new Image();
+        tekiimg.src = teki[i][j].image;
+        ctx.drawImage(tekiimg, teki[i][j].x+tx, teki[i][j].y,32,24);
       }
     }
   }
-}
-tact = tact + 1;
+
+tact = tact + 50;
 if (tact >= tcount) {
-  tx = tx + xm;
+  tx = tx + tmove;
+  console.log(tmove);
+  tact=0;
+  retflag = false;
+  if (tmove==1){
+      for (j = 9; j >= 0; j--) {
+        if (tx>j*50+320){
+        for (i = 0; i <= 4; i++) {
+          if(teki[i][j].alive)
+          retflag = true;
+        }
+      }}
+      if(retflag){
+      tmove=-1;
+    }
+  }else if (tmove==-1){
+    for (j = 0; j <= 9; j++) {
+      if (tx<j*(-50)){
+      for (i = 0; i <= 4; i++) {
+        if(teki[i][j].alive)
+        retflag = true;
+      }
+    }
+}
+if(retflag){
+  tmove=1;
 }
 
+}
+console.log(retflag);
+}
+}
 //被弾処理
 function misseffect() {
 
@@ -247,7 +293,7 @@ setInterval(game, 10);
 
 //キー入力
 function keyDownHandler(e) {
-  if (stop) {
+  if (st) {
     if (e.key === 'ArrowRight') {
       keyr = true;
     }
@@ -272,7 +318,7 @@ function keyDownHandler(e) {
     }
   } else if (stopeffect > 20) {
     console.log(a);
-    stop = false;
+    st = false;
   }else{
     keyr = false;
     keyl = false;
