@@ -1,52 +1,129 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 //初期設定
-let x=0;
-let stage=0;
-let score=0;
+let x = 0;
+let stage = 0;
+let score = 0;
 let keyr = false;
 let keyl = false;
 let shot = false;
-let sx = -10;
-let sy = -10;
-let zanki=3;
+let zanki = 3;
 let stopeffect = 0;
 let stop = false;
 let newstage = true;
-let clear =true;
-let miss =false;
-let gameover=false;
-var jiki = new Image();
-var jtama = new Image();
-var tekia = new Image();
-var tekib = new Image();
-var tekic = new Image();
-var tekid = new Image();
-var tekie = new Image();
-var tamaa1 = new Image();
-var tamaa2 = new Image();
-var tamaa3 = new Image();
-var tamac = new Image();
-var tamae = new Image();
-let tekix = 0;
-const talive = [[],[],[],[],[]];
-const ttama = [[],[],[],[]];
-const tcarge = [];
+let clear = true;
+let miss = false;
+let gameover = false;
+let tx = 0;
+let tmove = 1;
+let tcount = 50;
+let tact = 0;
+var teki = [[], [], [], [], []];
+var tama = [[], [], [], [], []];
+var img = new Image();
+
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+//敵クラス
+class tekic {
+  constructor(_alive, _x, _y, _image) {
+    this.x = _x;
+    this.y = _y;
+    this.teki = _image;
+    this.alive = _alive;
+  }
+}
+//敵弾クラス
+class tamaa {
+  constructor(_alive, _image1, _image2, _image3, _x, _y, _l) {
+    this.image1 = _image1;
+    this.image2 = _image2;
+    this.image3 = _image3;
+    this.alive = _alive;
+    this.x = _x;
+    this.y = _y;
+  }
+}
+class tamab {
+  constructor(_alive, _image, _x, _y, _mx, _my) {
+    this.image = _image;
+    this.alive = _alive;
+    this.x = _x;
+    this.y = _y;
+    this.mx = _mx;
+    this.my = _my;
+  }
+}
+class tamac {
+  constructor(_alive, _x, _chage, _limit) {
+    this.alive = _alive;
+    this.x = _x;
+    this.chage = _chage;
+    this.limit = _limit;
+  }
+}
+class tamad {
+  constructor(_alive, _image, _x, _y,_mx, _my, _r) {
+    this.image = _image;
+    this.alive = _alive;
+    this.x = _x;
+    this.y = _y;
+    this.mx = _mx;
+    this.my = _my;
+    this.r = _r;
+  }
+}
+for (i = 0; i <= 4; i++) {
+  for (j = 0; j <= 9; j++) {
+    switch (i) {
+      case 0:
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv1_32x24.png"');
+        break;
+      case 1:
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv2_32x24.png"');
+        break;
+      case 2:
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv3_32x24.png"');
+        break;
+      case 3:
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv4_32x24.png"');
+        break;
+      case 4:
+        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, '"res/inv5_32x24.png"');
+        break;
+    }
+  }
+}
+i = 0;
+for (j = 0; j <= 30; j++) {
+  tama[i][j] = new tamaa(false,"res/tama1a_16x12.png","res/tama1b_16x12.png","res/tama1c_16x12.png", false, 0, 0,0);
+}
+i = 1;
+for (j = 0; j <= 5; j++) {
+  tama[i][j] = new tamab(false,"res/tamat_16x12.png",  0, 0,0,0);
+}
+i = 2;
+for (j = 0; j <= 3; j++) {
+  tama[i][j] = new tamac(false,0, 0, 0);
+}
+i = 3;
+for (j = 0; j <= 4; j++) {
+  tama[i][j] = new tamad(false,"res/tamah_16x12.png",  0, 0,  0, 0,0);
+}
+
 
 //自機表示・枠表示
 function draw() {
-  if (!miss){
-    jiki.src = "res/jiki_32x24.png";
-    ctx.globalAlpha=1;
-    ctx.drawImage(jiki, x, 450,40,40);
-   } else {
-  jiki.src = "res/jiki_miss_32x24.png";
-  ctx.drawImage(jiki, x-10, 450-10,60,60);
-  misseffect++;
-}
+  if (!miss) {
+    img.src = "res/jiki_32x24.png";
+    ctx.globalAlpha = 1;
+    ctx.drawImage(img, x, 450, 40, 40);
+  } else {
+    img.src = "res/jiki_miss_32x24.png";
+    ctx.drawImage(img, x - 10, 450 - 10, 60, 60);
+    misseffect++;
+  }
   ctx.beginPath();
   ctx.rect(0, 0, 800, 500);
   ctx.strokeStyle = "rgba(0, 0, 255)";
@@ -61,170 +138,149 @@ function draw() {
   ctx.rect(1180, 0, 20, 500);
   ctx.strokeStyle = "rgba(0, 0, 255)";
   ctx.stroke();
-  ctx.fillStyle  = "rgba(0, 0, 255)";
+  ctx.fillStyle = "rgba(0, 0, 255)";
   ctx.fill();
   ctx.closePath();
 }
 //自弾処理
 function shotmove() {
-    jtama.src = "res/tamaji_16x12.png";
-    ctx.drawImage(jtama, sx, sy,1,10);
-    sy=sy-2;
-    if(sy<0){
-      shot=false;
-    }
+  img.src = "res/tamaji_16x12.png";
+  ctx.drawImage(img, sx, sy, 1, 10);
+  sy = sy - 2;
+  if (sy < 0) {
+    shot = false;
+  }
 }
 //敵・弾リセット処理
-function nextstage(){
-  if(!stop){
-    clear=false;
-    stop=true;
-    stopeffect=0;
+function nextstage() {
+  if (!stop) {
+    clear = false;
+    stop = true;
+    stopeffect = 0;
   }
-  for (i=0;i<=5;i++){
-    for (j=0;j<=10;j++){
-      talive[i][j]=true;
+  for (i = 0; i <= 4; i++) {
+    for (j = 0; j <= 9; j++) {
+      teki[i][j].alive = true;
     }
   }
   stage++;
-  x=0;
-  i=0;
-  for (j=0;j<=30;j++){
-    ttama[i][j]=false;
+  x = 0;
+  tekix = 0;
+  i = 0;
+  for (j = 0; j <= 30; j++) {
+    tama[i][j].active = false;
   }
-  i=1;
-  for (j=0;j<=5;j++){
-    ttama[i][j]=false;
+  i = 1;
+  for (j = 0; j <= 5; j++) {
+    tama[i][j].active = false;
   }
-  i=2;
-  for (j=0;j<=3;j++){
-    ttama[i][j]=false;
+  i = 2;
+  for (j = 0; j <= 3; j++) {
+    tama[i][j].active = false;
   }
-  i=3;
-  for (j=0;j<=4;j++){
-    ttama[i][j]=false;
+  i = 3;
+  for (j = 0; j <= 4; j++) {
+    tama[i][j].active = false;
   }
 }
 //敵描写
-function tdrow(){
-  tekia.src = "res/inv1_32x24.png";
-  tekib.src = "res/inv2_32x24.png";
-  tekic.src = "res/inv3_32x24.png";
-  tekid.src = "res/inv4_32x24.png";
-  tekie.src = "res/inv5_32x24.png";
-  for (i=0;i<=4;i++){
-    for (j=0;j<=9;j++){
-      if (talive[i][j]){
-        console.log(talive[i][j]);
-        switch(i){
-          case 0:
-            ctx.drawImage(tekia, tekix+j*50, i*50+50,32,24);
-          break;
-          case 1:
-            ctx.drawImage(tekib, tekix+j*50, i*50+50,32,24);
-          break;
-          case 2:
-            ctx.drawImage(tekic, tekix+j*50, i*50+50,32,24);
-          break;
-          case 3:
-            ctx.drawImage(tekid, tekix+j*50, i*50+50,32,24);
-          break;
-          case 4:
-            ctx.drawImage(tekie, tekix+j*50, i*50+50,32,24);
-          break;
-        }
-        
+function tdrow() {
+  for (i = 0; i <= 4; i++) {
+    for (j = 0; j <= 9; j++) {
+      if (teki[i][j].alive) {
+        console.log(teki[i][j].teki);
+        img.src = teki[i][j].teki;
+        ctx.drawImage(img, teki[i][j].x + 50, teki[i][j].y + 50,32,24);
       }
     }
   }
 }
+tact = tact + 1;
+if (tact >= tcount) {
+  tx = tx + xm;
+}
 
 //被弾処理
-function misseffect(){
+function misseffect() {
 
 }
 //ゲームオーバー処理
-function gameovereffect(){
+function gameovereffect() {
 
 }
+//初期処理
+
 //メイン処理
 function game() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-if (clear){
-  nextstage();
-}
-if (miss){
-  misseffect();
-}
-if (gameover){
-  gameovereffect();
-}
-tdrow();
-draw();
-if (shot){
-  shotmove();
-}
-if (keyl){
-  x=x-2;
-  if(x<0){
-    x=0;
-  }
-}
-if (keyr){
-  x=x+2;
-  if(x>760){
-    x=760;
-  }
-}
-stopeffect++
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (clear) {
+      nextstage();
+    }
+    if (miss) {
+      misseffect();
+    }
+    if (gameover) {
+      gameovereffect();
+    }
+    tdrow();
+    draw();
+    if (shot) {
+      shotmove();
+    }
+    if (keyl) {
+      x = x - 2;
+      if (x < 0) {
+        x = 0;
+      }
+    }
+    if (keyr) {
+      x = x + 2;
+      if (x > 760) {
+        x = 760;
+      }
+    }
+    stopeffect++
 
-console.log(clear);
-}
+  }
 //メイン処理を定期的に実行
 setInterval(game, 10);
+
 //キー入力
 function keyDownHandler(e) {
-if (stop){
-  if (e.key ===  'ArrowRight') {
-    keyr=true;
-  }
-  if (e.key ===  'd') {
-    keyr=true;
-  }
-  if (e.key ===  'ArrowLeft') {
-    keyl=true;
-  }
-  if (e.key ===  'a') {
-    keyl=true;
-  }
-  if (e.key === ' '&&!shot) {
-    shot=true;
-    sx=x+20;
-    sy=450;
-  }
-  if (e.key === 'z'&&!shot) {
-    shot=true;
-    sx=x+20;
-    sy=450;
-  }
-}else if(stopeffect>20){
-  console.log(a);
-  stop=false;
-}
-}
-  function keyUpHandler(e) {
-    if (e.key ===  'ArrowRight') {
-      keyr=false;
+  if (stop) {
+    if (e.key === 'ArrowRight') {
+      keyr = true;
     }
-    if (e.key ===  'a') {
-      keyr=false;
+    if (e.key === 'd') {
+      keyr = true;
     }
-    if (e.key ===  'ArrowLeft') {
-      keyl=false;
-    }  
-    if (e.key ===  'd') {
-      keyl=false;
-    }  
+    if (e.key === 'ArrowLeft') {
+      keyl = true;
+    }
+    if (e.key === 'a') {
+      keyl = true;
+    }
+    if (e.key === ' ' && !shot) {
+      shot = true;
+      sx = x + 20;
+      sy = 450;
+    }
+    if (e.key === 'z' && !shot) {
+      shot = true;
+      sx = x + 20;
+      sy = 450;
+    }
+  } else if (stopeffect > 20) {
+    console.log(a);
+    stop = false;
+  }else{
+    keyr = false;
+    keyl = false;
   }
- 
-  //以下各障害処理
+}
+function keyUpHandler(e) {
+  keyr = false;
+  keyl = false;
+}
+
+//以下各障害処理
