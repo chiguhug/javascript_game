@@ -58,7 +58,9 @@ class tamab {
   }
 }
 class tamac {
-  constructor(_alive, _x, _chage, _limit) {
+  constructor(_alive, _image1, _image2,_x, _chage, _limit) {
+    this.imagea = _image1;
+    this.imageb = _image2;
     this.alive = _alive;
     this.x = _x;
     this.chage = _chage;
@@ -107,7 +109,7 @@ for (j = 0; j <= 5; j++) {
 }
 i = 2;
 for (j = 0; j <= 3; j++) {
-  tama[i][j] = new tamac(false,0, 0, 0);
+  tama[i][j] = new tamac(false,"res/tamaL4_32x24.png","res/tamaL4_32x24.png",0, 0, 0);
 }
 i = 3;
 for (j = 0; j <= 4; j++) {
@@ -124,9 +126,10 @@ function draw() {
     ctx.drawImage(jikiimg, x, 450, 40, 40);
   } else {
     jikimissimg = new Image();
+    ctx.globalAlpha = 0.4;
     jikimissimg.src = "res/jiki_miss_32x24.png";
-    ctx.globalAlpha = 1;
     ctx.drawImage(jikimissimg, x - 10, 450 - 10, 60, 60);
+    ctx.globalAlpha = 1;
   }
   ctx.beginPath();
   ctx.rect(0, 0, 800, 500);
@@ -233,7 +236,7 @@ function shotchance(_i,_j){
   i=_i;
   j=_j;
   switch (i){
-    case 4:
+     case 4:
     case 3:
       xx=Math.random()*20000;
       if(xx<stage*10+50-tcount) {
@@ -261,11 +264,12 @@ function shotchance(_i,_j){
       }
     }
     break;
-/*    case 1:
+    case 1:
       xx=Math.random()*20000;
       if(xx<stage*10+50-tcount) {
         for(k=0;k<=3;k++){
           if(!tama[2][k].alive){
+
             tama[2][k].alive=true;
             tama[2][k].x=j;
             tama[2][k].chage=0;
@@ -275,7 +279,7 @@ function shotchance(_i,_j){
       }
     }
     break;
-    case 0:
+/*    case 0:
         let xlenge=0;
         let ylenge=0;
         let angle=0;
@@ -344,7 +348,7 @@ function tamamoveb(){
   for(k=0;k<5;k++){
     if(tama[1][k].alive){
       if(!miss){
-        if(tama[1][k].y<400){
+        if(tama[1][k].y<440){
         xlenge=x+20-tama[1][k].x;
         ylenge=470-tama[1][k].y;
         angle = Math.atan2(ylenge, xlenge);
@@ -370,6 +374,45 @@ function tamamoveb(){
     }}
   }
 }
+//ビーーーーーーーーーーーーーーーーーーーーム
+function tamamovec(){
+  let xx=0;
+  let yy=0;
+  console.log(j);
+  for(k=0;k<3;k++){
+    if(tama[2][k].alive){
+      xx=teki[1][tama[2][k].x].x+tx;
+      yy=teki[1][tama[2][k].x].y;
+      if(!teki[1][k].alive){
+        tama[2][k].alive=false;
+      }
+        if(tama[2][k].chage<24){
+          if(!miss){
+            tama[2][k].chage=tama[2][k].chage+0.05*stage;
+          }
+            tamaaimg = new Image();
+            tamaaimg.src = tama[2][k].imagea;
+            ctx.drawImage(tamaaimg, xx+16-tama[2][k].chage/2,yy+28-tama[2][k].chage/2, tama[2][k].chage,tama[2][k].chage);
+      }else if(tama[2][k].limit<80+stage*10){
+        if(!miss){
+          tama[2][k].limit++;
+        }
+        tamabimg = new Image();
+        tamabimg.src = tama[2][k].imageb;
+        ctx.drawImage(tamabimg, xx,yy+28, 24,500);
+        if(!miss){
+          if(xx>=x-4&&xx<=x+20){
+          miss=true;
+          stopeffect=0;
+        }}
+    }else{
+        tama[2][k].alive=false;
+      }
+      }
+    }
+  }
+
+//リスポーン処理
 function respone(){
 x=0;
 shot=false;
@@ -410,6 +453,7 @@ function game() {
     draw();
     tamamovea();
     tamamoveb();
+    tamamovec();
     if (shot) {
       shotmove();
     }
