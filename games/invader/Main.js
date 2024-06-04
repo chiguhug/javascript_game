@@ -121,8 +121,8 @@ for (j = 0; j <= 4; j++) {
 //自機表示・枠表示
 function draw() {
   jikiimg = new Image();
+  jikiimg.src = "res/jiki_32x24.png";
   if (!miss) {
-    jikiimg.src = "res/jiki_32x24.png";
     ctx.globalAlpha = 1;
     ctx.drawImage(jikiimg, x, 450, 40, 40);
   } else {
@@ -149,6 +149,26 @@ function draw() {
   ctx.fillStyle = "rgba(0, 0, 255)";
   ctx.fill();
   ctx.closePath();
+if (zanki>=1&&zanki<=3){
+for (i=0;i<zanki;i++){
+  ctx.drawImage(jikiimg, 900 + i*100, 50, 60, 60);
+}
+}else if (zanki>3&&zanki<=6){
+  for (i=0;i<3;i++){
+    ctx.drawImage(jikiimg, 900 + i*100, 50, 60, 60);
+  }
+    for (i=0;i<zanki-3;i++){
+    ctx.drawImage(jikiimg, 900 + i*100, 150, 60, 60);
+  }
+}else if (zanki>=7){
+  ctx.drawImage(jikiimg, 900, 50, 60, 60);
+  ctx.font = "48px serif";
+  ctx.fillText("✖", 1000, 100);
+  ctx.fillText(String(zanki), 1050, 100);
+}
+  ctx.font = "48px serif";
+  ctx.fillText("Score", 900, 380);
+  ctx.fillText(String(score), 900, 430);
 }
 //自弾処理
 function shotmove() {
@@ -168,6 +188,7 @@ for (j=0;j<=9;j++){
     tcount--;
     if (tcount == 0){
       clear=true;
+      stopeffect=0;
     }
   }
 }}
@@ -185,10 +206,10 @@ function nextstage() {
     }
   }
   stage++;
-  tcount=50
+  tcount=50;
   x = 0;
   tx = 0;
-  tmove = 0;
+  tmove = 2;
   i = 0;
   shot=false;
   for (j = 0; j <= 30; j++) {
@@ -238,8 +259,8 @@ function shotchance(_i,_j){
   switch (i){
      case 4:
     case 3:
-      xx=Math.random()*20000;
-      if(xx<stage*10+50-tcount) {
+      xx=Math.random()*120000;
+      if(xx<stage*10+500-tcount*10) {
         for(k=0;k<=30;k++){
           if(!tama[0][k].alive){
             tama[0][k].alive=true;
@@ -252,8 +273,8 @@ function shotchance(_i,_j){
     }
     break;
     case 2:
-      xx=Math.random()*20000;
-      if(xx<stage*10+50-tcount) {
+      xx=Math.random()*800000;
+      if(xx<stage*10+500-tcount*10) {
         for(k=0;k<=5;k++){
           if(!tama[1][k].alive){
             tama[1][k].alive=true;
@@ -265,8 +286,8 @@ function shotchance(_i,_j){
     }
     break;
     case 1:
-      xx=Math.random()*20000;
-      if(xx<stage*10+50-tcount) {
+      xx=Math.random()*200000;
+      if(xx<stage*10+500-tcount*10) {
         for(k=0;k<=3;k++){
           if(!tama[2][k].alive){
 
@@ -283,8 +304,8 @@ function shotchance(_i,_j){
         let xlenge=0;
         let ylenge=0;
         let angle=0;
-      xx=Math.random()*20000;
-      if(xx<stage*10+50-tcount+200) {
+      xx=Math.random()*8000000;
+      if(xx<stage*10+5000-tcount*100) {
         for(k=0;k<=4;k++){
           if(!tama[3][k].alive){
             tama[3][k].alive=true;
@@ -364,7 +385,7 @@ function tamamoveb(){
       tamaimg = new Image();
       tamaimg.src = tama[1][k].image;
       ctx.drawImage(tamaimg, tama[1][k].x, tama[1][k].y, 12, 12);
-      if(!miss||!clear){
+      if(!miss&&!clear){
         if(tama[1][k].y>=460&&tama[1][k].y<=474){
         if(tama[1][k].x>=x+14&&tama[1][k].x<=x+20){
           miss=true;
@@ -479,6 +500,7 @@ for (j = 0; j <= 4; j++) {
   gameover=true;
   stopeffect=0;
 }else{
+  gameover=false;
   stage =0;
   zanki =3;
   score=0;
@@ -487,13 +509,19 @@ for (j = 0; j <= 4; j++) {
 }
 //クリア表示
 function cleareffect() {
-
+  clrimg = new Image();
+  clrimg.src = "res/text_gameclear_e.png";
+  if (stage!=0){
+  ctx.drawImage(clrimg, 100,200, 500, 100);
+}
 }
 //ゲームオーバー表示
 function gameovereffect() {
+  clrimg = new Image();
+  clrimg.src = "res/text_gameover_e.png";
+  ctx.drawImage(clrimg, 100,200, 500, 100);
 
 }
-//初期処理
 
 //メイン処理
 function game() {
