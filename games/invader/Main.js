@@ -6,12 +6,18 @@ let stage = 0;
 let score = 0;
 let keyr = false;
 let keyl = false;
-let shot = false;
+let shot = 0;
+let power = 3;
+let shotwait = 0;
+let bomb = 2;
+let bombwait = 0;
 let zanki = 3;
-let stopeffect = 0;let newstage = true;
+let stopeffect = 0;
+let newstage = true;
 let clear = true;
 let miss = false;
 let gameover = false;
+let extend = 0;
 let tx = 0;
 let tmove = 2;
 let tcount = 50;
@@ -19,12 +25,20 @@ let retflag = false;
 let tact = 0;
 var teki = [[], [], [], [], []];
 var tama = [[], [], [], [], []];
-
+var jtama = [];
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
-//敵クラス
+//自弾クラス
+class Jtama {
+  constructor(_alive, _x, _y, _image) {
+    this.x = _x;
+    this.y = _y;
+    this.image = _image;
+    this.alive = _alive;
+  }
+}//敵クラス
 class tekic {
   constructor(_alive, _x, _y, _image) {
     this.x = _x;
@@ -35,45 +49,45 @@ class tekic {
 }
 //敵弾クラス
 class tamaa {
-  constructor(_alive, _image1, _image2, _image3, _x, _y, _l) {
+  constructor(_alive, _image1, _image2, _image3) {
     this.image1 = _image1;
     this.image2 = _image2;
     this.image3 = _image3;
     this.alive = _alive;
-    this.x = _x;
-    this.y = _y;
-    this.l = _l;
+    this.x = 0;
+    this.y = 0;
+    this.l = 0;
   }
 }
 class tamab {
-  constructor(_alive, _image, _x, _y, _mx, _my) {
+  constructor(_alive, _image) {
     this.image = _image;
     this.alive = _alive;
-    this.x = _x;
-    this.y = _y;
-    this.mx = _mx;
-    this.my = _my;
+    this.x = 0;
+    this.y = 0;
+    this.mx = 0;
+    this.my = 0;
   }
 }
 class tamac {
-  constructor(_alive, _image1, _image2,_x, _chage, _limit) {
+  constructor(_alive, _image1, _image2) {
     this.imagea = _image1;
     this.imageb = _image2;
     this.alive = _alive;
-    this.x = _x;
-    this.chage = _chage;
-    this.limit = _limit;
+    this.x = 0;
+    this.chage = 0;
+    this.limit = 0;
   }
 }
 class tamad {
-  constructor(_alive, _image, _x, _y,_mx, _my, _r) {
+  constructor(_alive, _image) {
     this.image = _image;
     this.alive = _alive;
-    this.x = _x;
-    this.y = _y;
-    this.mx = _mx;
-    this.my = _my;
-    this.ra = _r;
+    this.x = 0;
+    this.y = 0;
+    this.mx = 0;
+    this.my = 0;
+    this.ra = 0;
     this.ranow = 0;
     this.lenge = 0;
     this.lengemv = 0;
@@ -101,20 +115,23 @@ for (i = 0; i <= 4; i++) {
   }
 }
 i = 0;
-for (j = 0; j <= 30; j++) {
-  tama[i][j] = new tamaa(false,"res/tama1a_16x12.png","res/tama1b_16x12.png","res/tama1c_16x12.png", false, 0, 0,0);
-}
-i = 1;
-for (j = 0; j <= 5; j++) {
-  tama[i][j] = new tamab(false,"res/tamat_16x12.png",  0, 0,0,0);
-}
-i = 2;
-for (j = 0; j <= 3; j++) {
-  tama[i][j] = new tamac(false,"res/tamaL4_32x24.png","res/tamaL4_32x24.png",0, 0, 0);
-}
-i = 3;
-for (j = 0; j <= 4; j++) {
-  tama[i][j] = new tamad(false,"res/tamah_16x12.png",  0, 0,  0, 0,0);
+  for (j = 0; j <= 30; j++) {
+        tama[i][j] = new tamaa(false, "res/tama1a_16x12.png", "res/tama1b_16x12.png", "res/tama1c_16x12.png");
+    }
+    i = 1;
+    for (j = 0; j <= 5; j++) {
+      tama[i][j] = new tamab(false, "res/tamat_16x12.png");
+    }
+      i = 2;
+      for (j = 0; j <= 3; j++) {
+        tama[i][j] = new tamac(false, "res/tamaL4_32x24.png", "res/tamaL5_32x24.png");
+        }
+        i = 3;
+        for (j = 0; j <= 4; j++) {
+          tama[i][j] = new tamad(false, "res/tamah_16x12.png");
+        }
+      for (i = 0; i <= 6; i++) {
+        jtama[i] = new Jtama(false,0, 0, "res/tamaji_16x12.png");
 }
 
 
@@ -172,31 +189,46 @@ for (i=0;i<zanki;i++){
 }
 //自弾処理
 function shotmove() {
-  tamaimg = new Image();  
+  tamaimg = new Image();
   tamaimg.src = "res/tamaji_16x12.png";
-  ctx.drawImage(tamaimg, sx, sy, 1, 10);
-if(!miss){
-  sy = sy - 2;
-}
+  console.log(shot);
+  for (h=0;h<6;h++){
+  if(jtama[h].alive){
+    if(!miss&&!clear){
+    jtama[h].y--;
+    }
+    ctx.drawImage(tamaimg, jtama[h].x, jtama[h].y, 1, 10);
   for (i=0;i<=4;i++){
-    if (sy<=i*50+74&&sy>i*50+40){
-for (j=0;j<=9;j++){
-  if (sx>=teki[i][j].x+tx&&sx<=teki[i][j].x+tx+32&&teki[i][j].alive){
+    for (j=0;j<=9;j++){
+      if(teki[i][j].alive){
+        if (jtama[h].y<=i*50+74&&jtama[h].y>i*50+40){
+          if (jtama[h].x>=teki[i][j].x+tx&&jtama[h].x<=teki[i][j].x+tx+32){
     teki[i][j].alive=false;
     score=score+(5-i)*100;
-    shot=false
+    if (score>=(extend+1)*10000){
+      zanki++;
+    }
+    jtama[h].alive=false;
+    shot--;
     tcount--;
     if (tcount == 0){
       clear=true;
       stopeffect=0;
     }
+  
   }
-}}
+}}}}
+if (jtama[h].y<0){    
+  console.log(shot,"koko");
+  shot--;
+  jtama[h].alive=false;
+  jtama[h].y=1000;
+}
+
   }
-  if (sy < 0) {
-    shot = false;
   }
 }
+
 //敵・弾リセット処理
 function nextstage() {
     clear = false;
@@ -210,23 +242,30 @@ function nextstage() {
   x = 0;
   tx = 0;
   tmove = 2;
-  i = 0;
-  shot=false;
-  for (j = 0; j <= 30; j++) {
-    tama[i][j].active = false;
+  miss=false;
+  for (i = 0; i <= 6; i++) {
+    jtama[i].alive = false;
   }
-  i = 1;
-  for (j = 0; j <= 5; j++) {
-    tama[i][j].active = false;
-  }
-  i = 2;
-  for (j = 0; j <= 3; j++) {
-    tama[i][j].active = false;
-  }
-  i = 3;
-  for (j = 0; j <= 4; j++) {
-    tama[i][j].active = false;
-  }
+tamareset();
+} 
+//敵弾消し
+function tamareset() {
+i = 0;
+for (j = 0; j <= 30; j++) {
+  tama[i][j].alive = false;
+}
+i = 1;
+for (j = 0; j <= 5; j++) {
+  tama[i][j].alive = false;
+}
+i = 2;
+for (j = 0; j <= 3; j++) {
+  tama[i][j].alive = false;
+}
+i = 3;
+for (j = 0; j <= 4; j++) {
+  tama[i][j].alive = false;
+}
 }
 //敵描写
 function tdrow() {
@@ -243,8 +282,7 @@ function tdrow() {
           tmove=2;
         }
             shotchance(i,j);
-      }
-      }}}
+      }}}}
       if (!miss) {
         tact = tact + 1;
   if (tact >= tcount) {
@@ -320,7 +358,6 @@ function shotchance(_i,_j){
             angle = Math.atan2(ylenge, xlenge);
             tama[3][k].mx=Math.cos(angle)*1;
             tama[3][k].my=Math.sin(angle)*1;
-
             break;
         }
       }
@@ -331,6 +368,7 @@ function shotchance(_i,_j){
 //3Way弾
 function tamamovea(){
   for(k=0;k<30;k++){
+
     if(tama[0][k].alive){
       if(!miss&&!clear){
       tama[0][k].y=tama[0][k].y+1;
@@ -372,7 +410,7 @@ function tamamoveb(){
   for(k=0;k<5;k++){
     if(tama[1][k].alive){
       if(!miss&&!clear){
-        if(tama[1][k].y<440){
+        if(tama[1][k].y<400){
         xlenge=x+20-tama[1][k].x;
         ylenge=470-tama[1][k].y;
         angle = Math.atan2(ylenge, xlenge);
@@ -402,21 +440,23 @@ function tamamoveb(){
 function tamamovec(){
   let xx=0;
   let yy=0;
+  let body=0;
   for(k=0;k<3;k++){
     if(tama[2][k].alive){
-      xx=teki[1][tama[2][k].x].x+tx;
-      yy=teki[1][tama[2][k].x].y;
-      if(!teki[1][k].alive){
+      body=tama[2][k].x;
+      xx=teki[1][body].x+tx;
+      yy=teki[1][body].y;
+      if(!teki[1][body].alive){
         tama[2][k].alive=false;
       }
-        if(tama[2][k].chage<24){
+        if(tama[2][k].chage<40){
           if(!miss&&!clear){
             tama[2][k].chage=tama[2][k].chage+0.05*stage;
           }
             tamaaimg = new Image();
             tamaaimg.src = tama[2][k].imagea;
             ctx.drawImage(tamaaimg, xx+16-tama[2][k].chage/2,yy+28-tama[2][k].chage/2, tama[2][k].chage,tama[2][k].chage);
-      }else if(tama[2][k].limit<80+stage*10){
+      }else if(tama[2][k].limit<120+stage*20){
         if(!miss&&!clear){
           tama[2][k].limit++;
         }
@@ -477,8 +517,12 @@ function tamamoved(){
 function respone(){
 if(zanki >= 1){
   zanki--;
+  bomb=2;
   x=0;
-shot=false;
+shot=0;
+for (i = 0; i <= 6; i++) {
+  jtama[i].alive = false;
+}
 miss=false;
 i = 0;
 for (j = 0; j <= 30; j++) {
@@ -504,6 +548,7 @@ for (j = 0; j <= 4; j++) {
   stage =0;
   zanki =3;
   score=0;
+  extend = 0;
   nextstage();
 }
 }
@@ -532,9 +577,7 @@ function game() {
     tamamoveb();
     tamamovec();
     tamamoved();
-    if (shot) {
-      shotmove();
-    }
+    shotmove();
     if (clear) {
       cleareffect();
     }
@@ -556,7 +599,8 @@ function game() {
     }
   }
     stopeffect++;
-
+    shotwait++;
+  bombwait++;
   }
 //メイン処理を定期的に実行
 setInterval(game, 10);
@@ -576,15 +620,35 @@ function keyDownHandler(e) {
     if (e.key === 'a') {
       keyl = true;
     }
-    if (e.key === ' ' && !shot) {
-      shot = true;
-      sx = x + 20;
-      sy = 450;
+    if (e.key === ' ' && shot<3+power&&shotwait>50) {
+      for (i = 0; i <= 6; i++) {
+        if (!jtama[i].alive){
+          jtama[i].alive=true;
+          jtama[i].x=x + 20;
+          jtama[i].y=450;
+          shotwait=0;
+          shot++;
+          break;
+        }
+      }      
     }
-    if (e.key === 'z' && !shot) {
-      shot = true;
-      sx = x + 20;
-      sy = 450;
+    if (e.key === 'z' &&shot<3+power&&shotwait>50) {
+      for (i = 0; i <= 6; i++) {
+        if (!jtama[i].alive){
+          jtama[i].alive=true;
+          jtama[i].x=x + 20;
+          jtama[i].y=450;
+          shotwait=0;
+          shot++;
+          break;
+        }
+      }      
+    }
+    if (e.key === 'x' && bomb>=1&&bombwait>250) {
+      bombwait=0;
+      bomb--;
+      console.log(bomb,"bomb");
+      tamareset();
     }
   } else if (stopeffect >= 50) {
     if(miss){
