@@ -7,10 +7,10 @@ let score = 0;
 let keyr = false;
 let keyl = false;
 let shot = 0;
-let power = 3;
+let power = 0;
 let shotwait = 0;
 let bomb = 2;
-let bombwait = 0;
+let bombwait = 50;
 let zanki = 3;
 let stopeffect = 0;
 let newstage = true;
@@ -26,6 +26,7 @@ let tact = 0;
 var teki = [[], [], [], [], []];
 var tama = [[], [], [], [], []];
 var jtama = [];
+var item = [];
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
@@ -38,7 +39,17 @@ class Jtama {
     this.image = _image;
     this.alive = _alive;
   }
-}//敵クラス
+}
+//アイテムクラス
+class Item {
+  constructor(_alive, _x, _y, _type) {
+    this.x = _x;
+    this.y = _y;
+    this.alive = _alive;
+    this.type = _type;
+  }
+}
+//敵クラス
 class tekic {
   constructor(_alive, _x, _y, _image) {
     this.x = _x;
@@ -94,6 +105,9 @@ class tamad {
   }
 }
 for (i = 0; i <= 4; i++) {
+  item[i]=new Item(false,0,0,0)
+}
+for (i = 0; i <= 4; i++) {
   for (j = 0; j <= 9; j++) {
     switch (i) {
       case 0:
@@ -133,8 +147,6 @@ i = 0;
       for (i = 0; i <= 6; i++) {
         jtama[i] = new Jtama(false,0, 0, "res/tamaji_16x12.png");
 }
-
-
 //自機表示・枠表示
 function draw() {
   jikiimg = new Image();
@@ -191,7 +203,6 @@ for (i=0;i<zanki;i++){
 function shotmove() {
   tamaimg = new Image();
   tamaimg.src = "res/tamaji_16x12.png";
-  console.log(shot);
   for (h=0;h<6;h++){
   if(jtama[h].alive){
     if(!miss&&!clear){
@@ -207,26 +218,26 @@ function shotmove() {
     score=score+(5-i)*100;
     if (score>=(extend+1)*10000){
       zanki++;
+      extend++;
     }
     jtama[h].alive=false;
     shot--;
     tcount--;
+    dropchance(i,j);
     if (tcount == 0){
       clear=true;
       stopeffect=0;
     }
-  
   }
 }}}}
-if (jtama[h].y<0){    
+if (jtama[h].y<0){
   console.log(shot,"koko");
   shot--;
   jtama[h].alive=false;
   jtama[h].y=1000;
 }
-
-  }
-  }
+}
+}
 }
 
 //敵・弾リセット処理
@@ -247,7 +258,7 @@ function nextstage() {
     jtama[i].alive = false;
   }
 tamareset();
-} 
+}
 //敵弾消し
 function tamareset() {
 i = 0;
@@ -290,10 +301,38 @@ function tdrow() {
     tact=0;
   }}
 }
+//ドロップアイテム抽選
+function dropchance(_i,_j){
+  i=_i;
+  j=_j;
+  xx=Math.random()*100;
+  if(xx<40) {
+    for(k=0;k<=4;k++){
+      if(!item[k].alive){
+        item[k].alive=true;
+        item[k].x=teki[i][j].x+12+tx;
+        item[k].y=teki[i][j].y+16;
+        if(xx<1){
+          item[k].type=5;
+        } else if(xx<5){
+          item[k].type=4;
+        } else if(xx<10){
+          item[k].type=3;
+        } else if(xx<20){
+          item[k].type=2;
+        } else if(xx<40){
+          item[k].type=1;
+        }
+        break;
+  }
+  }
+}
+}
 //敵が弾を撃つかどうかの抽選
 function shotchance(_i,_j){
   i=_i;
   j=_j;
+  let beemnow=false;
   switch (i){
      case 4:
     case 3:
@@ -327,13 +366,19 @@ function shotchance(_i,_j){
       xx=Math.random()*200000;
       if(xx<stage*10+500-tcount*10) {
         for(k=0;k<=3;k++){
+          beemnow=false;
           if(!tama[2][k].alive){
-
+            for (l=0;l<=3;l++){
+              if(tama[2][l].alive==true&&tama[2][l].x==j)
+                beemnow=true;
+            }
+            if (!beemnow){
             tama[2][k].alive=true;
             tama[2][k].x=j;
             tama[2][k].chage=0;
             tama[2][k].limit=0;
             break;
+          }
         }
       }
     }
@@ -365,6 +410,71 @@ function shotchance(_i,_j){
     break;
    }
 }
+function itemmove(){
+  for(k=0;k<4;k++){
+    console.log(item[k].alive);
+    if(item[k].alive){
+      if(!miss&&!clear){
+      item[k].y++;
+      }
+      itemimga = new Image();
+      itemimgb = new Image();
+      itemimgc = new Image();
+      itemimgd = new Image();
+      itemimge = new Image();
+      itemimga.src = "res/item_s.png";
+      itemimga.src = "res/item_p.png";
+      itemimga.src = "res/item_b.png";
+      itemimga.src = "res/item_sh.png";
+      itemimga.src = "res/item_ex.png";
+      switch (item[k].type){
+        case 1:
+        ctx.drawImage(itemimga, item[k].x, item[k].y, 20, 20);
+        break;
+        case 2:
+        ctx.drawImage(itemimgb, item[k].x, item[k].y, 20, 20);
+        break;
+        case 3:
+        ctx.drawImage(itemimgc, item[k].x, item[k].y, 20, 20);
+        break;
+        case 4:
+        ctx.drawImage(itemimgd, item[k].x, item[k].y, 20, 20);
+        break;
+        case 5:
+        ctx.drawImage(itemimge, item[k].x, item[k].y, 20, 20);
+        break;
+      }
+        if(item[k].y>=400&&item[k].y<=499){
+        if(item[k].x>=x+14&&item[k].x<=x+20){
+          if (item[k].type==1){
+            score=score+500;
+          }else if (item[k].type==2){
+            if (power!=3){
+            power++;
+          }else{
+            score=score+500;
+          }
+          }else if (item[k].type==3){
+            if (bomb!=3){
+              bomb++;
+            }else{
+              score=score+500;
+            }
+            }else if (item[k].type==4){
+            score=score+500;
+          }else if (item[k].type==5){
+            zanki++;
+          }
+        }
+        item[k].alive=false;
+      }
+      if(item[k].y>500){
+        item[k].alive=false;
+        }
+    }
+  }
+}
+
 //3Way弾
 function tamamovea(){
   for(k=0;k<30;k++){
@@ -565,7 +675,14 @@ function gameovereffect() {
   clrimg = new Image();
   clrimg.src = "res/text_gameover_e.png";
   ctx.drawImage(clrimg, 100,200, 500, 100);
-
+}
+//ボムエフェクト
+function bombeffect() {
+  ctx.beginPath();
+  ctx.arc(x+20, 450, 40*bombwait, 0,Math.PI*2, false);
+  ctx.fillStyle = "rgba(100,200,255,0.5)";
+  ctx.fill();
+  ctx.closePath();
 }
 
 //メイン処理
@@ -573,11 +690,15 @@ function game() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     tdrow();
     draw();
+    itemmove();
     tamamovea();
     tamamoveb();
     tamamovec();
     tamamoved();
     shotmove();
+    if (bombwait<20){
+      bombeffect();
+    }
     if (clear) {
       cleareffect();
     }
@@ -620,7 +741,7 @@ function keyDownHandler(e) {
     if (e.key === 'a') {
       keyl = true;
     }
-    if (e.key === ' ' && shot<3+power&&shotwait>50) {
+    if (e.key === ' ' && shot<3+power&&shotwait>20) {
       for (i = 0; i <= 6; i++) {
         if (!jtama[i].alive){
           jtama[i].alive=true;
@@ -632,7 +753,7 @@ function keyDownHandler(e) {
         }
       }      
     }
-    if (e.key === 'z' &&shot<3+power&&shotwait>50) {
+    if (e.key === 'z' &&shot<3+power&&shotwait>20) {
       for (i = 0; i <= 6; i++) {
         if (!jtama[i].alive){
           jtama[i].alive=true;
