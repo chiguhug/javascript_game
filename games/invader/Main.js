@@ -18,6 +18,8 @@ let clear = true;
 let miss = false;
 let gameover = false;
 let extend = 0;
+let shield = false;
+let invincible = 0;
 let tx = 0;
 let tmove = 2;
 let tcount = 50;
@@ -151,10 +153,19 @@ i = 0;
 function draw() {
   jikiimg = new Image();
   jikiimg.src = "res/jiki_32x24.png";
-  if (!miss) {
-    ctx.globalAlpha = 1;
+  console.log(invincible);
+    if (!miss&&!shield) {
+      if (invincible>0&&invincible%2==1){
+      }else{
+        ctx.globalAlpha = 1;
     ctx.drawImage(jikiimg, x, 450, 40, 40);
-  } else {
+      }
+     }else if (!miss&&shield) {
+      jikisimg = new Image();
+      jikisimg.src = "res/jikib_32x24.png";
+      ctx.globalAlpha = 1;
+      ctx.drawImage(jikisimg, x, 450, 40, 40);
+    } else {
     jikimissimg = new Image();
     ctx.globalAlpha = 0.4;
     jikimissimg.src = "res/jiki_miss_32x24.png";
@@ -184,10 +195,10 @@ for (i=0;i<zanki;i++){
 }
 }else if (zanki>3&&zanki<=6){
   for (i=0;i<3;i++){
-    ctx.drawImage(jikiimg, 900 + i*100, 50, 60, 60);
+    ctx.drawImage(jikiimg, 900 + i*100, 30, 60, 60);
   }
     for (i=0;i<zanki-3;i++){
-    ctx.drawImage(jikiimg, 900 + i*100, 150, 60, 60);
+    ctx.drawImage(jikiimg, 900 + i*100, 100, 60, 60);
   }
 }else if (zanki>=7){
   ctx.drawImage(jikiimg, 900, 50, 60, 60);
@@ -196,14 +207,29 @@ for (i=0;i<zanki;i++){
   ctx.fillText(String(zanki), 1050, 100);
 }
   ctx.font = "48px serif";
-  ctx.fillText("Score", 900, 380);
-  ctx.fillText(String(score), 900, 430);
+  ctx.fillText("STAGE", 850, 380);
+  ctx.fillText(String(stage), 1020, 380);
+  ctx.font = "48px serif";
+  ctx.fillText("Score", 850, 430);
+  ctx.fillText(String(score), 980, 430);
+  bombimg = new Image();
+  bombimg.src = "res/item_b.png";
+  for (i=0;i<bomb;i++){
+    ctx.drawImage(bombimg, 900 + i*100, 250, 60, 60);
+  }
+  powerimg = new Image();
+  powerimg.src = "res/item_p.png";
+  for (i=0;i<power;i++){
+    ctx.drawImage(powerimg, 830 + i*70, 180, 60, 60);
+  }
 }
+  
+
 //自弾処理
 function shotmove() {
   tamaimg = new Image();
   tamaimg.src = "res/tamaji_16x12.png";
-  for (h=0;h<6;h++){
+  for (h=0;h<=6;h++){
   if(jtama[h].alive){
     if(!miss&&!clear){
     jtama[h].y--;
@@ -231,10 +257,8 @@ function shotmove() {
   }
 }}}}
 if (jtama[h].y<0){
-  console.log(shot,"koko");
   shot--;
   jtama[h].alive=false;
-  jtama[h].y=1000;
 }
 }
 }
@@ -249,14 +273,22 @@ function nextstage() {
     }
   }
   stage++;
+  shot =0;
   tcount=50;
   x = 0;
   tx = 0;
   tmove = 2;
   miss=false;
+  if (bomb==0){
+    bomb++;
+  }
   for (i = 0; i <= 6; i++) {
     jtama[i].alive = false;
   }
+  for (j = 0; j <= 4; j++) {
+    item[j].alive = false;
+  }
+  
 tamareset();
 }
 //敵弾消し
@@ -412,7 +444,6 @@ function shotchance(_i,_j){
 }
 function itemmove(){
   for(k=0;k<4;k++){
-    console.log(item[k].alive);
     if(item[k].alive){
       if(!miss&&!clear){
       item[k].y++;
@@ -423,50 +454,54 @@ function itemmove(){
       itemimgd = new Image();
       itemimge = new Image();
       itemimga.src = "res/item_s.png";
-      itemimga.src = "res/item_p.png";
-      itemimga.src = "res/item_b.png";
-      itemimga.src = "res/item_sh.png";
-      itemimga.src = "res/item_ex.png";
+      itemimgb.src = "res/item_p.png";
+      itemimgc.src = "res/item_b.png";
+      itemimgd.src = "res/item_sh.png";
+      itemimge.src = "res/item_ex.png";
       switch (item[k].type){
         case 1:
-        ctx.drawImage(itemimga, item[k].x, item[k].y, 20, 20);
+        ctx.drawImage(itemimga, item[k].x, item[k].y, 40, 40);
         break;
         case 2:
-        ctx.drawImage(itemimgb, item[k].x, item[k].y, 20, 20);
+        ctx.drawImage(itemimgb, item[k].x, item[k].y, 40, 40);
         break;
         case 3:
-        ctx.drawImage(itemimgc, item[k].x, item[k].y, 20, 20);
+        ctx.drawImage(itemimgc, item[k].x, item[k].y, 40, 40);
         break;
         case 4:
-        ctx.drawImage(itemimgd, item[k].x, item[k].y, 20, 20);
+        ctx.drawImage(itemimgd, item[k].x, item[k].y, 40, 40);
         break;
         case 5:
-        ctx.drawImage(itemimge, item[k].x, item[k].y, 20, 20);
+        ctx.drawImage(itemimge, item[k].x, item[k].y, 40, 40);
         break;
       }
         if(item[k].y>=400&&item[k].y<=499){
-        if(item[k].x>=x+14&&item[k].x<=x+20){
+        if(item[k].x>=x-14&&item[k].x<=x+40){
           if (item[k].type==1){
             score=score+500;
           }else if (item[k].type==2){
-            if (power!=3){
+            if (power<5){
             power++;
           }else{
             score=score+500;
           }
           }else if (item[k].type==3){
-            if (bomb!=3){
+            if (bomb<3){
               bomb++;
             }else{
               score=score+500;
             }
             }else if (item[k].type==4){
-            score=score+500;
+              if (!shield){
+                shield=true;
+              }else{
+              score=score+500;
+              }
           }else if (item[k].type==5){
             zanki++;
           }
+          item[k].alive=false;
         }
-        item[k].alive=false;
       }
       if(item[k].y>500){
         item[k].alive=false;
@@ -474,7 +509,15 @@ function itemmove(){
     }
   }
 }
-
+//被弾処理
+function hit(){
+  if(!miss&&!shield&&invincible<=0){
+    miss=true;
+    stopeffect=0;
+}else if(shield)
+  shield=false;
+  invincible=300;
+}
 //3Way弾
 function tamamovea(){
   for(k=0;k<30;k++){
@@ -493,17 +536,13 @@ function tamamovea(){
       ctx.drawImage(tamaimga, tama[0][k].x, tama[0][k].y, 8, 12);
       ctx.drawImage(tamaimgb, tama[0][k].x-tama[0][k].l, tama[0][k].y, 8, 6);
       ctx.drawImage(tamaimgc, tama[0][k].x+tama[0][k].l, tama[0][k].y, 8, 6);
-      if(!miss&&!clear){
         if(tama[0][k].y>=460&&tama[0][k].y<=474){
         if(tama[0][k].x>=x+14&&tama[0][k].x<=x+20){
-          miss=true;
-          stopeffect=0;
+          hit();
         }else if(tama[0][k].x-tama[0][k].l>=x+18&&tama[0][k].x-tama[0][k].l<=x+24){
-          miss=true;
-          stopeffect=0;
+          hit();
         }else if(tama[0][k].x+tama[0][k].l>=x+18&&tama[0][k].x+tama[0][k].l<=x+24){
-          miss=true;
-          stopeffect=0;
+          hit();
         }
       }
       if(tama[0][k].y>500){
@@ -511,7 +550,7 @@ function tamamovea(){
         }
     }}
   }
-}
+
 //誘導弾
 function tamamoveb(){
   let xlenge=0;
@@ -533,18 +572,15 @@ function tamamoveb(){
       tamaimg = new Image();
       tamaimg.src = tama[1][k].image;
       ctx.drawImage(tamaimg, tama[1][k].x, tama[1][k].y, 12, 12);
-      if(!miss&&!clear){
         if(tama[1][k].y>=460&&tama[1][k].y<=474){
         if(tama[1][k].x>=x+14&&tama[1][k].x<=x+20){
-          miss=true;
-          stopeffect=0;
+          hit();
         }
       }
       if(tama[1][k].y>500){
         tama[1][k].alive=false;
         }
     }}
-  }
 }
 //ビーーーーーーーーーーーーーーーーーーーーム
 function tamamovec(){
@@ -573,11 +609,9 @@ function tamamovec(){
         tamabimg = new Image();
         tamabimg.src = tama[2][k].imageb;
         ctx.drawImage(tamabimg, xx,yy+28, 24,500);
-        if(!miss){
           if(xx>=x-4&&xx<=x+20){
-          miss=true;
-          stopeffect=0;
-        }}
+            hit();
+          }
     }else{
         tama[2][k].alive=false;
       }
@@ -609,13 +643,11 @@ function tamamoved(){
         }
 
       ctx.drawImage(tamaimg, tama[3][k].x+xx, tama[3][k].y+yy, 8, 8);
-      if(!miss){
         if(tama[3][k].y+yy>=460&&tama[3][k].y+yy<=474){
         if(tama[3][k].x+xx>=x+14&&tama[3][k].x+xx<=x+20){
-          miss=true;
-          stopeffect=0;
+          hit();
       }
-    }}}
+    }}
       if(tama[3][k].y>1000){
         tama[3][k].alive=false;
         }
@@ -628,6 +660,7 @@ function respone(){
 if(zanki >= 1){
   zanki--;
   bomb=2;
+  power=Math.ceil(power/2);  
   x=0;
 shot=0;
 for (i = 0; i <= 6; i++) {
@@ -649,6 +682,9 @@ for (j = 0; j <= 3; j++) {
 i = 3;
 for (j = 0; j <= 4; j++) {
   tama[i][j].alive = false;
+}
+for (j = 0; j <= 4; j++) {
+  item[j].alive = false;
 }
 }else if (!gameover){
   gameover=true;
@@ -722,6 +758,7 @@ function game() {
     stopeffect++;
     shotwait++;
   bombwait++;
+  invincible--;
   }
 //メイン処理を定期的に実行
 setInterval(game, 10);
@@ -741,7 +778,8 @@ function keyDownHandler(e) {
     if (e.key === 'a') {
       keyl = true;
     }
-    if (e.key === ' ' && shot<3+power&&shotwait>20) {
+    if (e.key === ' ' && shot<1+power&&shotwait>20) {
+      console.log(power,shot);
       for (i = 0; i <= 6; i++) {
         if (!jtama[i].alive){
           jtama[i].alive=true;
@@ -753,7 +791,7 @@ function keyDownHandler(e) {
         }
       }      
     }
-    if (e.key === 'z' &&shot<3+power&&shotwait>20) {
+    if (e.key === 'z' &&shot<1+power&&shotwait>20) {
       for (i = 0; i <= 6; i++) {
         if (!jtama[i].alive){
           jtama[i].alive=true;
@@ -768,7 +806,11 @@ function keyDownHandler(e) {
     if (e.key === 'x' && bomb>=1&&bombwait>250) {
       bombwait=0;
       bomb--;
-      console.log(bomb,"bomb");
+      tamareset();
+    }
+    if (e.key === 'b' && bomb>=1&&bombwait>250) {
+      bombwait=0;
+      bomb--;
       tamareset();
     }
   } else if (stopeffect >= 50) {
