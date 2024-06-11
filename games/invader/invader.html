@@ -10,24 +10,36 @@
       <!-- ゲームの詳細 -->
       <!-- メインページで取得するため非表示としている -->
       <input id="game_description" type="hidden" value="
-      ★★★開発中のため、まだまだ未完成です★★★<br><br>
       ＜ゲーム概要＞<br>
-      昔懐かしのインベーダーをオマージュしたゲームです。<br>
+      昔懐かしのインベーダーをオマージュしたシューティング・ゲームです。<br>
+      敵の攻撃は3方向に落ちてくるミサイルだけでなくレーザービームや星形の弾幕など多彩！<br>
+      敵を倒すと5種類のアイテムが落ちてくるのでゲットしてパワーアップしよう！！<br>
+      何かのキーを押すとゲームがスタートします。<br>
       <br>
-      ＜遊び方＞<br>
-      ・左右キーで自機が移動します。<br>
-      ・スペースキーで攻撃します。<br>
+      ＜キー操作＞<br>
+      ・右矢印キー or Dキー&#009;・・・&#009;右に移動します。<br>
+      ・左矢印キー or Aキー&#009;・・・&#009;左に移動します。<br>
+      ・スペースキー or Zキー&#009;・・・&#009;ミサイルを発射します。<br>
+      ・Xキー or Bキー&#009;・・・&#009;ボムを使用します。<br>
+      <br>
+      ＜アイテムについて＞<br>
+      <img src='./games/invader/res/item_ex.png' width='32' height='32'>&#009;・・・&#009;1機アップ。（レア度：Max）<br>
+      <img src='./games/invader/res/item_sh.png' width='32' height='32'>&#009;・・・&#009;シールド。敵の攻撃を1回無効化。（レア度：高）<br>
+      <img src='./games/invader/res/item_b.png' width='32' height='32'>&#009;・・・&#009;ボム。使用すると敵の弾をすべて消滅出来る。（レア度：中）<br>
+      <img src='./games/invader/res/item_p.png' width='32' height='32'>&#009;・・・&#009;攻撃力アップ。アイテムの数に応じて連射が増える。（レア度：低）<br>
+      <img src='./games/invader/res/item_s.png' width='32' height='32'>&#009;・・・&#009;スコアアップ。（レア度：Min）。<br>
       <br>
       ＜クレジット＞<br>
-      <pre>企画・設計・製造&#009;・・・&#009;I.H.</pre>
+      企画・設計・製造&#009;・・・&#009;I.H.<br>
+      <br>
+      presented by クリエーターズチグハグ<br>
       "
       />
 
-      
       <!-- スクリプトの読み込み -->
+      <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+      <script src="../css/frame.js"></script>
       <script src="Main.js"></script>
-      <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-      <script src="frame.js" type="text/javascript"></script> -->
 
       <!-- ゲーム選択時にフォーカスさせる -->
       <script>
