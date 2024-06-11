@@ -695,6 +695,7 @@ for (j = 0; j <= 4; j++) {
   zanki =3;
   score=0;
   extend = 0;
+  power=0;
   nextstage();
 }
 }
