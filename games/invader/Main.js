@@ -153,7 +153,6 @@ i = 0;
 function draw() {
   jikiimg = new Image();
   jikiimg.src = "res/jiki_32x24.png";
-  console.log(invincible);
     if (!miss&&!shield) {
       if (invincible>0&&invincible%2==1){
       }else{
@@ -780,7 +779,6 @@ function keyDownHandler(e) {
       keyl = true;
     }
     if (e.key === ' ' && shot<1+power&&shotwait>20) {
-      console.log(power,shot);
       for (i = 0; i <= 6; i++) {
         if (!jtama[i].alive){
           jtama[i].alive=true;
