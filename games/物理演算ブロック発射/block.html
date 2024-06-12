@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+  <html lang="ja">
+    <head>
+      <meta charset="utf-8">
+      <title>物理演算ブロック発射ゲーム</title>
+    </head>
+    <body>
+      <canvas id="myCanvas" width="1200" height="500"></canvas>
+
+      <!-- ゲームの詳細 -->
+      <!-- メインページで取得するため非表示としている -->
+      <input id="game_description" type="hidden" value="
+      ★★★開発中のため、まだまだ未完成です★★★<br><br>
+      ＜ゲーム概要＞<br>
+      クリックで弾を発射してブロックを崩そう<br>
+      跳ね返ってきた弾や崩れてきたブロックに被弾するとダメージを受ける。<br>
+      与えるダメージも受けるダメージも重いものが勢いよく当たるほど大ダメージになるぞ。<br>
+      <br>
+      ＜遊び方＞<br>
+      ・上下左右キーで自機が移動します。ただし上方向にはある程度までしか移動できません。<br>
+      ・クリックで弾を発射します。クリック長押しで勢いよく発射できます<br>
+      ・通常ステージではブロックが全て崩れて画面外まで落下することでクリア。<br>
+      ・通常ステージには制限時間がある。制限時間をオーバーするとどんどん重力が強くなり、<br>
+      　最後にはつぶされてしまう<br>
+      ・重いブロックは固い。勢いよく当てるか何度も当てることで崩せるぞ。<br>
+      ・ボスステージではボスのHPを0にするとクリア<br>
+      <br>
+      ＜クレジット＞<br>
+      <pre>企画・設計・製造&#009;・・・&#009;I.H.</pre>
+      "
+      />
+
+      
+      <!-- スクリプトの読み込み -->
+      <script src="./matter.js"></script>
+      <script src="Main.js"></script>
+      <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+      <script src="frame.js" type="text/javascript"></script> -->
+
+      <!-- ゲーム選択時にフォーカスさせる -->
+      <script>
+        window.focus();
+      </script>
+    </body>
+  </html>
