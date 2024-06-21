@@ -5,7 +5,7 @@
       <title>物理演算ブロック発射ゲーム</title>
     </head>
     <body>
-      <canvas id="myCanvas" width="1200" height="500"></canvas>
+      <canvas id="myCanvas" width="1200" height="600"></canvas>
 
       <!-- ゲームの詳細 -->
       <!-- メインページで取得するため非表示としている -->
@@ -17,7 +17,7 @@
       与えるダメージも受けるダメージも重いものが勢いよく当たるほど大ダメージになるぞ。<br>
       <br>
       ＜遊び方＞<br>
-      ・上下左右キーで自機が移動します。ただし上方向にはある程度までしか移動できません。<br>
+      ・WASDキーで自機が移動します。ただし上方向にはある程度までしか移動できません。<br>
       ・クリックで弾を発射します。クリック長押しで勢いよく発射できます<br>
       ・通常ステージではブロックが全て崩れて画面外まで落下することでクリア。<br>
       ・通常ステージには制限時間がある。制限時間をオーバーするとどんどん重力が強くなり、<br>
@@ -34,6 +34,7 @@
       <!-- スクリプトの読み込み -->
       <script src="./matter.js"></script>
       <script src="Main.js"></script>
+      <body onload="init()"></body>
       <!-- <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
       <script src="frame.js" type="text/javascript"></script> -->
 
