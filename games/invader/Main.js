@@ -608,9 +608,9 @@ function tamamovec(){
         tamabimg = new Image();
         tamabimg.src = tama[2][k].imageb;
         ctx.drawImage(tamabimg, xx,yy+28, 24,500);
-          if(xx>=x-4&&xx<=x+20){
-            hit();
-          }
+        if(xx>=x-4&&xx<=x+20){
+          hit();
+        }
     }else{
         tama[2][k].alive=false;
       }

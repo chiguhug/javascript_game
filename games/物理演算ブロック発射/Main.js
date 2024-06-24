@@ -1,5 +1,3 @@
-
-
 //matter初期設定
 // 使用モジュール
 const Engine     = Matter.Engine;
@@ -100,6 +98,18 @@ function draw() {
   wall_left.show();
   wall_right.show();
   wall_top.show();
+
+  context.beginPath();
+  context.rect(830, 0, 470,30 );
+  context.rect(1170, 0, 30, 600);
+  context.rect(830, 300, 470, 10);
+  context.rect(830, 570, 470, 30);
+  context.strokeStyle = "red";
+  context.stroke();
+  context.fillStyle = "red";
+  context.fill();
+  context.closePath();
+
 }
 class Box {
   //　コンストラクタ宣言
