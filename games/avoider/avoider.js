@@ -1,10 +1,10 @@
-var canvas = document.getElementById("myCanvas");
-var ctx = canvas.getContext("2d");
+var canvas = document.getElementById("myCanvas"); //キャンバスの取得
+var ctx = canvas.getContext("2d");  //コンテキストの取得
 //初期設定
-let x=20;
-let stage=1;
-let Pressed = false;
-let Re = false;
+let x=20; //スタート時の自キャラのx座標
+let stage=1;  //ステージ番号
+let Pressed = false;	//スペースキーが押されたかの判定フラグ
+let Re = false;	//逆方向に進むかの判定フラグ
 let Rex = 0;
 let Rem = 2;
 let gameRunning = true;
@@ -13,8 +13,8 @@ let gamewait = false;
 let gameover=false;
 var img = new Image();
 
-document.addEventListener("keydown", keyDownHandler, false);
-document.addEventListener("keyup", keyUpHandler, false);
+document.addEventListener("keydown", keyDownHandler, false);  //キー押下時のイベント登録
+document.addEventListener("keyup", keyUpHandler, false);  //キー開放時のイベント登録
 
 //自機表示
 function draw() {
@@ -71,7 +71,7 @@ gamewait = false;
 gameover=false;
 Rex = 0;
 Rem = 2;
-Pressed = false;
+Pressed = false;	//スペースキーが押された判定のクリア
 ex1=0;
 exm1=3.9;
 ex2 = 100;
@@ -102,140 +102,152 @@ if(Re){
   x=20;
 }
 }
+
+//デバッグ用
 function test(){
-gameover=false;
+	gameover=false;	//ゲームを強制的に再開させる
 }
 //メイン処理
 function game() {
-ctx.clearRect(0, 0, canvas.width, canvas.height);
-switch(stage){
-  case 0:
-    clr();
-  break;
-  case 1:
-    enemy1();
-    enemy2();
-  break;
-  case 2:
-    enemy3();
-  break;
-  case 3:
-    enemy4();
-    enemy5();
-  break;
-  case 4:
-    if (Re) {
-      reenemy6();
-    }else{
-      enemy6();
-    }
-  break;
-  case 5:
-    enemy7();
-  break;
-  case 6:
-    tre();
-  break;
-}
-window.focus(); //画面をフォーカスさせる
+	ctx.clearRect(0, 0, canvas.width, canvas.height);	//キャンバスのクリア
+	//ステージ毎の処理
+	switch(stage){
+	case 0:
+		clr();	//ステージクリア時の処理
+		break;
+	case 1:
+		enemy1();	//左側の障害物の表示
+		enemy2();	//右側の障害物の表示
+		break;
+	case 2:
+		enemy3();
+		break;
+	case 3:
+		enemy4();
+		enemy5();
+		break;
+	case 4:
+		if (Re) {
+			reenemy6();
+		}else{
+			enemy6();
+		}
+		break;
+	case 5:
+		enemy7();
+		break;
+	case 6:
+		tre();
+		break;
+	}
+	window.focus(); //画面をフォーカスさせる
 
-draw();
-if (Re) {
-  Rex=Rex+Rem;
-  evt++;
-  if (stage>=1&&stage<=5) {
-    ReE();
-  }
-  if (Rex>=10) {
-    Rem=-1;
-  }else if (Rex<=-10) {
-    Rem=1;
-  }
-  if (!gameover&&!gamewait){
-    if (Pressed) {
-      x-=2;
-    }
-    if (x<=20) {
-      x=1180;
-      stage--;
-      evt=0;
-    }
-  }
-  }else{
-    if (!gameover&&!gamewait){
-      if (Pressed) {
-        x+=2;
-      }
-      if (x>=1180) {
-        x=20;
-        stage++;
-      }
-    }
-  }
+	draw();
+
+	if (Re) {
+		Rex=Rex+Rem;
+		evt++;
+		if (stage>=1&&stage<=5) {
+			ReE();
+		}
+		if (Rex>=10) {
+			Rem=-1;
+		}else if (Rex<=-10) {
+			Rem=1;
+		}
+		if (!gameover&&!gamewait){
+			if (Pressed) {	//スペースキーが押されているとき
+				x-=2;
+			}
+			if (x<=20) {
+				x=1180;
+				stage--;
+				evt=0;
+			}
+		}
+	}else{
+		if (!gameover&&!gamewait){
+			if (Pressed) {	//スペースキーが押されているとき
+				x+=2;
+			}
+			if (x>=1180) {
+				x=20;
+				stage++;
+			}
+		}
+	}
 }
-//メイン処理を定期的に実行
+//メイン処理を定期的（10msec毎）に実行
 setInterval(game, 10);
-//キー入力
+
+//キー押下時のイベントハンドラー
 function keyDownHandler(e) {
-  if (e.key === " ") {
-    Pressed = true;
-  }else if (e.key ===  'r'&&stage!=0) {
-    restartGame();
-  }else if (e.key ===  's') {
-    x=1000;
-  }else if (e.key ===  't') {
-    test();
-  }
+	if (e.key === " ") {	//スペースキーが押下された
+		Pressed = true;	//スペースキーが押されている状態をセット
+	}else if (e.key ===  'r'&&stage!=0) {	//rキーが押下された
+		restartGame();	//ゲームを初期状態に戻す
+	}else if (e.key ===  's') {	//sキーが押下された
+    	x=1000;	//自キャラのx座標を1000まで強制的に移動させる（デバッグ用）
+  	}else if (e.key ===  't') {	//tキーが押下された
+    	test();	//自キャラをその位置のままゲーム再開させる（デバッグ用）
+  	}
 }
-  function keyUpHandler(e) {
-  if (e.key === " ") {
-    Pressed = false;
-  }
+//キー開放時のイベントハンドラー
+function keyUpHandler(e) {
+	if (e.key === " ") {
+		Pressed = false;	//スペースキーが押されている状態をクリア
+	}
 }
 //以下各障害処理
-  let ex1=0;
-  let exm1=3.9;
-    function enemy1() {
+
+//第一ステージの左側の障害物の表示
+let ex1=0;	//障害物のy軸
+let exm1=3.9;	//障害物の上下方向の移動量
+function enemy1() {
+	//障害物の上下移動
     ctx.beginPath();
     ctx.rect(200+Rex, ex1, 100, 20);
     ctx.fillStyle = "red";
     ctx.fill();
     ctx.closePath();
-ex1+=exm1;
-if (ex1>=320) {
-    exm1=-3.9;
-   }
-   if (ex1<=-20) {
-    exm1=3.9;
-   }
-   if (ex1>=140&&ex1<=160) {
-    if (x>=180&&x<=320) {
-      gameover=true;
-    }
-   }
+	ex1+=exm1;
+	if (ex1>=320) {	//キャンバスエリアの一番下にきたとき
+    	exm1=-3.9;	//移動量を上方向に切り替える
+	}
+	if (ex1<=-20) {	//キャンバスエリアの一番上にきたとき
+    	exm1=3.9;	//移動量を下方向に切り替える
+	}
+	if (ex1>=140&&ex1<=160) {	//障害物のy軸が140～160の間にいるとき
+    	if (x>=180&&x<=320) {	//自キャラのx座標が180～320の間にいるとき
+      		gameover=true;	//障害物にぶつかったと判定し、ゲームオーバーの判定をセットする
+    	}
+	}
 }
+
+//第一ステージの右側の障害物の表示
 let ex2 = 100;
 let ey2 = 800;
 let em2 = 1.9;
 function enemy2() {
-  ctx.beginPath();
-  ctx.rect(ey2+Rex, ex2, 80, 80);
-  ctx.fillStyle = "red";
-  ctx.fill();
-  ctx.closePath();
-ex2+=em2;
-ey2-=em2;
-if (ex2>=240) {
-  em2=-1.9;
- }
- if (ex2<=0) {
-  em2=1.9;
- }
- if (ex2>=80&&ex2<=160) {
-  if (x>=ey2-20&&x<=ey2+100) {
-    gameover=true;
-  }
- }
+	//障害物の上下移動
+	ctx.beginPath();
+	ctx.rect(ey2+Rex, ex2, 80, 80);
+	ctx.fillStyle = "red";
+	ctx.fill();
+	ctx.closePath();
+	ex2+=em2;
+	ey2-=em2;
+	if (ex2>=240) {
+		em2=-1.9;
+ 	}
+ 	if (ex2<=0) {
+  		em2=1.9;
+ 	}
+ 	if (ex2>=80&&ex2<=160) {
+  		if (x>=ey2-20&&x<=ey2+100) {
+    		gameover=true;
+  		}
+ 	}
 }
 let e3 = false;
 let em3 = 0;
@@ -520,26 +532,28 @@ function ReE() {
     gameover=true;
   }
 }
-function clr() {
-  Re=false;
-  gamewait=true
-  evt++;
-if(evt<200){
-  x=x-2;
-}else if(evt<300){
-  x--;
-  ctx.beginPath();
-  ctx.arc(2000-evt*2, 160, 400, 0,Math.PI*2, false);
-  ctx.fillStyle = "red";
-  ctx.fill();
-  ctx.closePath();
-}else if(evt<=700){
-  ctx.beginPath();
-  ctx.ellipse(1400, 160, 400, 700-evt, Math.PI, 0, Math.PI*2);
-  ctx.fillStyle = "#DDDDDD";
-  ctx.fill();
-  ctx.closePath();
- 
-}
 
+//ステージクリア時の処理
+function clr() {
+	Re=false;	//逆方向（左向き）に進むかの判定フラグをクリア
+	gamewait=true	//ゲームを待ち状態にセット
+	evt++;	//待ち時間計測用のカウンタをアップ
+	if(evt<200){	//0秒～2秒間の処理
+  		x=x-2;
+	}else if(evt<300){	//2秒～3秒間の処理
+		//キャンバスをはみ出る大きめの円を描画
+		x--;
+  		ctx.beginPath();
+  		ctx.arc(2000-evt*2, 160, 400, 0,Math.PI*2, false);
+  		ctx.fillStyle = "red";
+  		ctx.fill();
+  		ctx.closePath();
+	}else if(evt<=700){	//3秒～7秒間の処理
+		//y軸方向の半径を縮めながら敵を消滅させていく
+		ctx.beginPath();
+  		ctx.ellipse(1400, 160, 400, 700-evt, Math.PI, 0, Math.PI*2);
+  		ctx.fillStyle = "#DDDDDD";
+  		ctx.fill();
+  		ctx.closePath();
+	}
 }

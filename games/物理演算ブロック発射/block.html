@@ -4,8 +4,31 @@
       <meta charset="utf-8">
       <title>物理演算ブロック発射ゲーム</title>
     </head>
+    <style>
+      #myCanvas{
+            position: absolute;
+            left:0;
+            top:0;
+            border: 0;
+            max-width:100%;
+            box-sizing: content-box;
+            padding: 0;
+            margin: 0;
+      }
+      #worldCanvas{
+            position: absolute;
+            left:0;
+            top:0;
+            border: 0;
+            max-width:100%;
+            box-sizing: content-box;
+            padding: 0;
+            margin: 0;
+      }
+    </style>
     <body>
       <canvas id="myCanvas" width="1200" height="600"></canvas>
+      <canvas id="worldCanvas" width="830" height="600"></canvas>
 
       <!-- ゲームの詳細 -->
       <!-- メインページで取得するため非表示としている -->

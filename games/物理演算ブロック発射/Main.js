@@ -48,6 +48,7 @@ document.addEventListener("keyup", keyUpHandler, false);
 const init = () => {
   //キャンバスの取得
   canvas = document.getElementById("myCanvas");  //キャンバスの取得
+  world_canvas = document.getElementById("worldCanvas");  //キャンバスの取得
   context = canvas.getContext("2d");
   width = canvas.width;   //キャンバスの幅をセット
   height = canvas.height; //キャンバスの高さをセット
@@ -58,7 +59,7 @@ engine = Engine.create();
 
 // 画面を描画するクラス
 render = Render.create({
-  canvas: canvas,
+  canvas: world_canvas,
   engine: engine,
   options: {
     width: WIDTH,   //横幅は制限する
