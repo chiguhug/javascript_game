@@ -12,7 +12,6 @@ const Constraint = Matter.Constraint;
 const World = Matter.World;
 const Body       = Matter.Body;
 
-
 //初期変数設定
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
@@ -50,6 +49,7 @@ const init = () => {
   canvas = document.getElementById("myCanvas");  //キャンバスの取得
   world_canvas = document.getElementById("worldCanvas");  //キャンバスの取得
   context = canvas.getContext("2d");
+  wcontext = world_canvas.getContext("2d");
   width = canvas.width;   //キャンバスの幅をセット
   height = canvas.height; //キャンバスの高さをセット
 
@@ -76,15 +76,13 @@ wall_left = new Box(15, 300, 30, 600, 0, true, "red");
 wall_right = new Box(815, 300, 30, 600, 0, true, "red");
 wall_top = new Box(415, 15, 770, 30, 0, true, "red");
 
-
 // 物理世界を更新
 const runner = Runner.create();
 Runner.run(runner, engine);
-
   
   // デバッグ用（クリックした位置の座標をコンソールに表示）
   canvas.addEventListener("click", event => {
-      console.log(event.offsetX, event.offsetY);
+    console.log(event.offsetX, event.offsetY);
   });
   main();
 }
@@ -110,65 +108,63 @@ function draw() {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
-
 }
 class Box {
   //　コンストラクタ宣言
   constructor(x, y, w, h, a, s, c){
-      let optisons = {
-          restitution: 1,
-          friction: 0,
-          density: 1,
-          angle: a,
-          isStatic: s,
-      };
-      this.color = c;
-      this.body = Bodies.rectangle(x, y, w, h, optisons);
-      Composite.add(world, this.body);
+    let optisons = {
+      restitution: 1,
+      friction: 0,
+      density: 1,
+      angle: a,
+      isStatic: s,
+    };
+    this.color = c;
+    this.body = Bodies.rectangle(x, y, w, h, optisons);
+    Composite.add(world, this.body);
   }
 
   //　表示用メソッド
   show() {
-      let vertices = this.body.vertices;
-      context.beginPath(); //パスの作成
-      context.moveTo(vertices[0].x, vertices[0].y);
-      context.lineTo(vertices[1].x, vertices[1].y);
-      context.lineTo(vertices[2].x, vertices[2].y);
-      context.lineTo(vertices[3].x, vertices[3].y);
-      context.closePath();
-      context.fillStyle = this.color;
-      context.fill();
+    let vertices = this.body.vertices;
+    wcontext.beginPath(); //パスの作成
+    wcontext.moveTo(vertices[0].x, vertices[0].y);
+    wcontext.lineTo(vertices[1].x, vertices[1].y);
+    wcontext.lineTo(vertices[2].x, vertices[2].y);
+    wcontext.lineTo(vertices[3].x, vertices[3].y);
+    wcontext.closePath();
+    wcontext.fillStyle = this.color;
+    wcontext.fill();
   }
 }
 class Jiki {
   //　コンストラクタ宣言
   constructor(x, y){
-      let optisons = {
-          restitution: 1,
-          friction: 0,
-          density: 1,
-          angle: 0,
-          isStatic: true,
-      };
-      this.color = c;
-      this.body = Bodies.rectangle(x, y, w, h, optisons);
-      Composite.add(world, this.body);
+    let optisons = {
+      restitution: 1,
+      friction: 0,
+      density: 1,
+      angle: 0,
+      isStatic: true,
+    };
+    this.color = c;
+    this.body = Bodies.rectangle(x, y, w, h, optisons);
+    Composite.add(world, this.body);
   }
 
   //　表示用メソッド
   show() {
       let vertices = this.body.vertices;
-      context.beginPath(); //パスの作成
-      context.moveTo(vertices[0].x, vertices[0].y);
-      context.lineTo(vertices[1].x, vertices[1].y);
-      context.lineTo(vertices[2].x, vertices[2].y);
-      context.lineTo(vertices[3].x, vertices[3].y);
-      context.closePath();
-      context.fillStyle = this.color;
-      context.fill();
+      wcontext.beginPath(); //パスの作成
+      wcontext.moveTo(vertices[0].x, vertices[0].y);
+      wcontext.lineTo(vertices[1].x, vertices[1].y);
+      wcontext.lineTo(vertices[2].x, vertices[2].y);
+      wcontext.lineTo(vertices[3].x, vertices[3].y);
+      wcontext.closePath();
+      wcontext.fillStyle = this.color;
+      wcontext.fill();
   }
 }
-
 
 //キー入力
 function keyDownHandler(e) {
