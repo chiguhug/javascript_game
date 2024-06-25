@@ -1,3 +1,13 @@
+/*
+======================================================================
+Project Name    : ゲーム開発
+ 
+Copyright © 2024 大阪ヒューマンネット All Rights Reserved.
+ 
+This source code or any portion thereof must not be  
+reproduced or used in any manner whatsoever.
+======================================================================
+*/
 document.addEventListener('DOMContentLoaded', function() {
     //DOMの読み込み完了後に実行
     var ul = document.getElementById('scroll_content'); //スクロール対象となるulタグの取得

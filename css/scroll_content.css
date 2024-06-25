@@ -1,3 +1,14 @@
+/*
+======================================================================
+Project Name    : ゲーム開発
+ 
+Copyright © 2024 大阪ヒューマンネット All Rights Reserved.
+ 
+This source code or any portion thereof must not be  
+reproduced or used in any manner whatsoever.
+======================================================================
+*/
+
 #scroll_content {
   overflow-x: auto;
   white-space: nowrap;

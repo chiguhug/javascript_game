@@ -1,3 +1,15 @@
+/*
+======================================================================
+Project Name    : 避けゲー
+Creation Date   : 2024年5月
+ 
+Copyright © 2024 大阪ヒューマンネット All Rights Reserved.
+ 
+This source code or any portion thereof must not be  
+reproduced or used in any manner whatsoever.
+======================================================================
+*/
+
 var canvas = document.getElementById("myCanvas"); //キャンバスの取得
 var ctx = canvas.getContext("2d");  //コンテキストの取得
 //初期設定

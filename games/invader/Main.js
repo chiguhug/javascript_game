@@ -1,3 +1,15 @@
+/*
+======================================================================
+Project Name    : 弾幕インベーダー
+Creation Date   : 2024年6月
+ 
+Copyright © 2024 大阪ヒューマンネット All Rights Reserved.
+ 
+This source code or any portion thereof must not be  
+reproduced or used in any manner whatsoever.
+======================================================================
+*/
+
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 //初期設定
