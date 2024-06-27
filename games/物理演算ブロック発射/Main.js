@@ -87,7 +87,9 @@ Runner.run(runner, engine);
   // デバッグ用（クリックした位置の座標をコンソールに表示）
   world_canvas.addEventListener("click", event => {
     console.log(event.offsetX, event.offsetY);
-    jikiangle = Math.atan2(event.offsetY-jikiy,event.offsetX-jikix);
+    jikiangle = Math.atan2(event.offsetY-jikiy,event.offsetX-jikix)+Math.PI/2;//90度分補正
+    console.log(event.offsetY-jikiy,event.offsetX-jikix);
+    console.log(jikiangle);
   });
   main();
 }
@@ -98,17 +100,14 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function move() {
-  console.log(jiki.body.angle);
-  console.log(jikiangle);
-
+  console.log(jiki);
   if (keyr)jikix=jikix+3;
   if (keyl)jikix=jikix-3;
   if (keyd)jikiy=jikiy+3;
   if (keyu)jikiy=jikiy-3;
   Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
 
-  //Matter.Body.setAngle(jiki.Body,jikiangle, [updateVelocity=false]);
-  jiki.body.angle=jikiangle;
+  Matter.Body.setAngle(jiki.body,jikiangle, [updateVelocity=false]);
 
 }
 
