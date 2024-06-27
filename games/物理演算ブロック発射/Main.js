@@ -18,6 +18,9 @@ let wall_left, wall_right, wall_top;
 let stage = 1;
 let substage = 1;
 let score = 0;
+let jikix=50;
+let jikiy=550;
+let jikiangle=0;
 let keyr = false;
 let keyl = false;
 let keyu = false;
@@ -75,21 +78,38 @@ Render.run(render);
 wall_left = new Box(15, 300, 30, 600, 0, true, "red");
 wall_right = new Box(815, 300, 30, 600, 0, true, "red");
 wall_top = new Box(415, 15, 770, 30, 0, true, "red");
+jiki = new Jiki(jikix,jikiy);
 
 // 物理世界を更新
 const runner = Runner.create();
 Runner.run(runner, engine);
   
   // デバッグ用（クリックした位置の座標をコンソールに表示）
-  canvas.addEventListener("click", event => {
+  world_canvas.addEventListener("click", event => {
     console.log(event.offsetX, event.offsetY);
+    jikiangle = Math.atan2(event.offsetY-jikiy,event.offsetX-jikix);
   });
   main();
 }
 //　Main関数
 function main() {
+  move();
   draw();
   window.requestAnimationFrame(main);
+}
+function move() {
+  console.log(jiki.body.angle);
+  console.log(jikiangle);
+
+  if (keyr)jikix=jikix+3;
+  if (keyl)jikix=jikix-3;
+  if (keyd)jikiy=jikiy+3;
+  if (keyu)jikiy=jikiy-3;
+  Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
+
+  //Matter.Body.setAngle(jiki.Body,jikiangle, [updateVelocity=false]);
+  jiki.body.angle=jikiangle;
+
 }
 
 //　描画関数
@@ -97,6 +117,7 @@ function draw() {
   wall_left.show();
   wall_right.show();
   wall_top.show();
+  jiki.show();
 
   context.beginPath();
   context.rect(830, 0, 470,30 );
@@ -147,8 +168,8 @@ class Jiki {
       angle: 0,
       isStatic: true,
     };
-    this.color = c;
-    this.body = Bodies.rectangle(x, y, w, h, optisons);
+    this.color = "blue";
+    this.body = Bodies.trapezoid(x, y,20,30,0.6,optisons);
     Composite.add(world, this.body);
   }
 
@@ -164,22 +185,17 @@ class Jiki {
       wcontext.fillStyle = this.color;
       wcontext.fill();
   }
+  up(){
+
+  }
 }
 
 //キー入力
 function keyDownHandler(e) {
-    if (e.key === 'd') {
-      keyr = true;
-    }
-    if (e.key === 'w') {
-      keyu = true;
-    }
-    if (e.key === 's') {
-      keyd = true;
-    }
-    if (e.key === 'a') {
-      keyl = true;
-    }
+    if (e.key === 'd') keyr = true;
+    if (e.key === 'w') keyu = true;
+    if (e.key === 's') keyd = true;
+    if (e.key === 'a') keyl = true;
   }
 function keyUpHandler(e) {
   if (e.key === 'd') {
