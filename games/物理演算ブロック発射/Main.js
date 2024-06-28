@@ -20,6 +20,8 @@ let substage = 1;
 let score = 0;
 let jikix=50;
 let jikiy=550;
+let mousex=0;
+let mousey=0;
 let jikiangle=0;
 let keyr = false;
 let keyl = false;
@@ -38,9 +40,9 @@ let shield = false;
 let invincible = 0;
 let retflag = false;
 let tact = 0;
-var block = [];
-var tama = [];
-var atack = [];
+var blocks = [];
+var tamas = [];
+var atacks = [];
 jikiimg = new Image();
 jikiimg.src = "res/jiki_32x24.png";
 
@@ -84,12 +86,15 @@ jiki = new Jiki(jikix,jikiy);
 const runner = Runner.create();
 Runner.run(runner, engine);
   
-  // デバッグ用（クリックした位置の座標をコンソールに表示）
-  world_canvas.addEventListener("click", event => {
-    console.log(event.offsetX, event.offsetY);
-    jikiangle = Math.atan2(event.offsetY-jikiy,event.offsetX-jikix)+Math.PI/2;//90度分補正
-    console.log(event.offsetY-jikiy,event.offsetX-jikix);
-    console.log(jikiangle);
+world_canvas.addEventListener("click", event => {
+  console.log(event.offsetX, event.offsetY);
+  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+  shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)))
+});
+// マウスカーソルの位置の取得
+  world_canvas.addEventListener("mousemove", event => {
+    mousey=event.offsetY;
+    mousex=event.offsetX;
   });
   main();
 }
@@ -100,13 +105,13 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function move() {
-  console.log(jiki);
   if (keyr)jikix=jikix+3;
   if (keyl)jikix=jikix-3;
   if (keyd)jikiy=jikiy+3;
   if (keyu)jikiy=jikiy-3;
   Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
 
+  jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)+Math.PI/2;//90度分補正
   Matter.Body.setAngle(jiki.body,jikiangle, [updateVelocity=false]);
 
 }
@@ -117,7 +122,16 @@ function draw() {
   wall_right.show();
   wall_top.show();
   jiki.show();
-
+  for(i=0;i<tamas.length;){
+    if (tamas[i].isOffScreen()) {
+      tamas[i].removeFromWorld();
+      tamas.splice(i,1);
+    }else{
+      tamas[i].show();
+      i++;
+    }
+  }
+  console.log(tamas.length);
   context.beginPath();
   context.rect(830, 0, 470,30 );
   context.rect(1170, 0, 30, 600);
@@ -129,6 +143,11 @@ function draw() {
   context.fill();
   context.closePath();
 }
+function shot(renge) {
+tamas.push(new Tama(jikix,jikiy,jikiangle,renge/1000))
+
+}
+//自機の弾発射処理
 class Box {
   //　コンストラクタ宣言
   constructor(x, y, w, h, a, s, c){
@@ -186,6 +205,40 @@ class Jiki {
   }
   up(){
 
+  }
+}
+class Tama {
+  //　コンストラクタ宣言
+  constructor(x, y,ang,fce){
+      let optisons = {
+          restitution: 0.8,
+          friction: 0,
+          angle: ang,
+//          force:fce,
+          isStatic: false,
+      };
+      this.body = Bodies.circle(x, y, 10, optisons);
+      this.r = 10;
+      this.color = "white";
+      Composite.add(world, this.body);
+  }
+
+  //　ボールが画面外にはみ出たかを判定するメソッド
+  isOffScreen() {
+      let pos = this.body.position;
+      return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+  }
+
+  removeFromWorld() {
+      World.remove(world, this.body);
+  }
+
+  //　表示用メソッド
+  show() {
+      context.fillStyle = this.color;
+      context.beginPath();
+      context.ellipse(this.body.position.x, this.body.position.y, this.r, this.r, 0, 0, 2 * Math.PI);
+      context.fill();
   }
 }
 
