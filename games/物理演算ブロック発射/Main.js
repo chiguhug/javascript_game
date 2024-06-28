@@ -87,8 +87,8 @@ const runner = Runner.create();
 Runner.run(runner, engine);
   
 world_canvas.addEventListener("click", event => {
-  console.log(event.offsetX, event.offsetY);
-  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+//  console.log(event.offsetX, event.offsetY);
+//  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
   shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)))
 });
 // マウスカーソルの位置の取得
@@ -111,8 +111,8 @@ function move() {
   if (keyu)jikiy=jikiy-3;
   Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
 
-  jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)+Math.PI/2;//90度分補正
-  Matter.Body.setAngle(jiki.body,jikiangle, [updateVelocity=false]);
+  jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)
+  Matter.Body.setAngle(jiki.body,jikiangle+Math.PI/2, [updateVelocity=false]);//90度分補正
 
 }
 
@@ -127,7 +127,7 @@ function draw() {
       tamas[i].removeFromWorld();
       tamas.splice(i,1);
     }else{
-      tamas[i].show();
+//      tamas[i].show();
       i++;
     }
   }
@@ -144,8 +144,8 @@ function draw() {
   context.closePath();
 }
 function shot(renge) {
-tamas.push(new Tama(jikix,jikiy,jikiangle,renge/1000))
-
+tamas.push(new Tama(jikix,jikiy,jikiangle,renge/20000))
+console.log(tamas[0]);
 }
 //自機の弾発射処理
 class Box {
@@ -214,12 +214,15 @@ class Tama {
           restitution: 0.8,
           friction: 0,
           angle: ang,
-//          force:fce,
+          render: {
+            fillStyle: "#ffffff"
+          },
+          force:{x:Math.cos(jikiangle)*fce,y:Math.sin(jikiangle)*fce},
           isStatic: false,
       };
-      this.body = Bodies.circle(x, y, 10, optisons);
       this.r = 10;
-      this.color = "white";
+      this.body = Bodies.circle(x, y, this.r, optisons);
+      this.color = 'rgb(255,255,255)';
       Composite.add(world, this.body);
   }
 
@@ -235,10 +238,11 @@ class Tama {
 
   //　表示用メソッド
   show() {
-      context.fillStyle = this.color;
       context.beginPath();
       context.ellipse(this.body.position.x, this.body.position.y, this.r, this.r, 0, 0, 2 * Math.PI);
+      context.fillStyle = this.color;
       context.fill();
+      console.log(this.color)
   }
 }
 
