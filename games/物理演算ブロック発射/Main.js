@@ -77,9 +77,9 @@ render = Render.create({
 Render.run(render);
 
   //　外枠を作成
-wall_left = new Box(15, 300, 30, 600, 0, true, "red");
-wall_right = new Box(815, 300, 30, 600, 0, true, "red");
-wall_top = new Box(415, 15, 770, 30, 0, true, "red");
+wall_left = new Wall(15, 300, 30, 600, 0, true, "red");
+wall_right = new Wall(815, 300, 30, 600, 0, true, "red");
+wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
 // 物理世界を更新
@@ -118,10 +118,6 @@ function move() {
 
 //　描画関数
 function draw() {
-  wall_left.show();
-  wall_right.show();
-  wall_top.show();
-  jiki.show();
   for(i=0;i<tamas.length;){
     if (tamas[i].isOffScreen()) {
       tamas[i].removeFromWorld();
@@ -143,12 +139,16 @@ function draw() {
   context.fill();
   context.closePath();
 }
+//自機の弾発射処理
 function shot(renge) {
 tamas.push(new Tama(jikix,jikiy,jikiangle,renge/20000))
-console.log(tamas[0]);
 }
-//自機の弾発射処理
-class Box {
+function setblock(x) {
+for (i=0;i++;i<x){
+  blocks.push(new Block(jikix,jikiy,jikiangle));
+}
+}
+class Wall {
   //　コンストラクタ宣言
   constructor(x, y, w, h, a, s, c){
     let optisons = {
@@ -157,23 +157,41 @@ class Box {
       density: 1,
       angle: a,
       isStatic: s,
+      render: {
+        fillStyle: c
+      },
     };
-    this.color = c;
     this.body = Bodies.rectangle(x, y, w, h, optisons);
     Composite.add(world, this.body);
   }
+}
+class Block {
+  //　コンストラクタ宣言
+  constructor(x, y, hen, r, a, c,hp){
+    let optisons = {
+      restitution: 1,
+      friction: 0,
+      density: 1,
+      angle: a,
+      isStatic: true,
+      render: {
+        fillStyle: c
+      },
+    };
+    this.hp=hp;
+    this.body = Bodies.polygon(x, y, hen, r, optisons);
+    Composite.add(world, this.body);
+  }
+  break(){
+    this.body.isStatic=false;
+  }
+  isOffScreen() {
+      let pos = this.body.position;
+      return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+  }
 
-  //　表示用メソッド
-  show() {
-    let vertices = this.body.vertices;
-    wcontext.beginPath(); //パスの作成
-    wcontext.moveTo(vertices[0].x, vertices[0].y);
-    wcontext.lineTo(vertices[1].x, vertices[1].y);
-    wcontext.lineTo(vertices[2].x, vertices[2].y);
-    wcontext.lineTo(vertices[3].x, vertices[3].y);
-    wcontext.closePath();
-    wcontext.fillStyle = this.color;
-    wcontext.fill();
+  removeFromWorld() {
+      World.remove(world, this.body);
   }
 }
 class Jiki {
@@ -184,6 +202,9 @@ class Jiki {
       friction: 0,
       density: 1,
       angle: 0,
+      render: {
+        fillStyle: "#2020ff"
+      },
       isStatic: true,
     };
     this.color = "blue";
@@ -191,18 +212,6 @@ class Jiki {
     Composite.add(world, this.body);
   }
 
-  //　表示用メソッド
-  show() {
-      let vertices = this.body.vertices;
-      wcontext.beginPath(); //パスの作成
-      wcontext.moveTo(vertices[0].x, vertices[0].y);
-      wcontext.lineTo(vertices[1].x, vertices[1].y);
-      wcontext.lineTo(vertices[2].x, vertices[2].y);
-      wcontext.lineTo(vertices[3].x, vertices[3].y);
-      wcontext.closePath();
-      wcontext.fillStyle = this.color;
-      wcontext.fill();
-  }
   up(){
 
   }
@@ -222,7 +231,6 @@ class Tama {
       };
       this.r = 10;
       this.body = Bodies.circle(x, y, this.r, optisons);
-      this.color = 'rgb(255,255,255)';
       Composite.add(world, this.body);
   }
 
@@ -234,15 +242,6 @@ class Tama {
 
   removeFromWorld() {
       World.remove(world, this.body);
-  }
-
-  //　表示用メソッド
-  show() {
-      context.beginPath();
-      context.ellipse(this.body.position.x, this.body.position.y, this.r, this.r, 0, 0, 2 * Math.PI);
-      context.fillStyle = this.color;
-      context.fill();
-      console.log(this.color)
   }
 }
 
