@@ -211,6 +211,12 @@ function keyDownHandler(e) {
 		restartGame();	//ゲームを初期状態に戻す
 	}else if (e.key ===  's') {	//sキーが押下された
     	x=1000;	//自キャラのx座標を1000まで強制的に移動させる（デバッグ用）
+	}else if (e.key ===  'c') {	//sキーが押下された（デバッグ用）
+		if (Re) {
+			stage--;	//ステージ数を増やす（次のステージにセットする）
+		} else {
+			stage++;	//ステージ数を増やす（次のステージにセットする）
+		}
   	}else if (e.key ===  't') {	//tキーが押下された
     	test();	//自キャラをその位置のままゲーム再開させる（デバッグ用）
   	}
@@ -469,7 +475,7 @@ let eh7 = 160;	//隣の障害物との間隔
 let em7 = 4;	//上下移動の移動量
 let et7 = 0;	//第五ステージ用のカウンタ
 function enemy7() {
-	//上段一番右の障害物の表示
+	//上段一番左の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+Rex,ey7);
 	ctx.lineTo(ex7-30+Rex,ey7-300);
@@ -477,7 +483,7 @@ function enemy7() {
 	ctx.closePath();
 	ctx.fillStyle = "red";
 	ctx.fill();
-	//上段右から二番目の障害物の表示
+	//上段左から二番目の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+eh7+Rex,ey7);
 	ctx.lineTo(ex7-30+eh7+Rex,ey7-300);
@@ -485,7 +491,7 @@ function enemy7() {
 	ctx.closePath();
 	ctx.fillStyle = "red";
 	ctx.fill();
-	//上段右から三番目の障害物の表示
+	//上段左から三番目の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+eh7*2+Rex,ey7);
 	ctx.lineTo(ex7-30+eh7*2+Rex,ey7-300);
@@ -493,7 +499,7 @@ function enemy7() {
 	ctx.closePath();
 	ctx.fillStyle = "red";
 	ctx.fill();
-	//下段一番右の障害物の表示
+	//下段一番左の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+eh7*0.5+Rex,ey7);
 	ctx.lineTo(ex7+eh7*0.5-30+Rex,ey7+300);
@@ -501,7 +507,7 @@ function enemy7() {
 	ctx.closePath();
 	ctx.fillStyle = "red";
 	ctx.fill();
-	//下段右から二番目の障害物の表示
+	//下段左から二番目の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+eh7*1.5+Rex,ey7);
 	ctx.lineTo(ex7+eh7*1.5-30+Rex,ey7+300);
@@ -509,7 +515,7 @@ function enemy7() {
 	ctx.closePath();
 	ctx.fillStyle = "red";
 	ctx.fill();
-	//下段右から三番目の障害物の表示
+	//下段左から三番目の障害物の表示
 	ctx.beginPath();
 	ctx.moveTo(ex7+eh7*2.5+Rex,ey7);
 	ctx.lineTo(ex7+eh7*2.5-30+Rex,ey7+300);
@@ -580,6 +586,9 @@ function tre() {
 	if (evt>400) {	//ゲーム一旦停止してから4秒経過後
 		gamewait=false;	//ゲームを再開させる
 	}
+	if (x>=1600-evt-400) {	//円（障害物）の左端のx座標とぶつかったか
+		gameover=true;	//障害物にぶつかったと判定し、ゲームオーバーの判定をセットする
+	}
 }
 
 //右から追いかけてくる障害物の表示（復路のみ）
@@ -590,7 +599,7 @@ function ReE() {
 	ctx.fill();
 	ctx.closePath();
 	//当たり判定
-	if (x>=1600-evt/2) {	//円（障害物）の右端のx座標とぶつかったか
+	if (x>=1600-evt/2) {	//円（障害物）の左端のx座標とぶつかったか
 		gameover=true;	//障害物にぶつかったと判定し、ゲームオーバーの判定をセットする
 	}
 }
