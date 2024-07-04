@@ -13,7 +13,7 @@ reproduced or used in any manner whatsoever.
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 //初期設定
-let x = 0;
+let x = 0;	//自機のx座標
 let stage = 0;
 let score = 0;
 let keyr = false;
@@ -21,7 +21,7 @@ let keyl = false;
 let shot = 0;
 let power = 0;
 let shotwait = 0;
-let bomb = 2;
+let bomb = 2;	//インベーダのミサイルを破壊する爆弾の数
 let bombwait = 50;
 let zanki = 3;
 let stopeffect = 0;
@@ -64,7 +64,7 @@ class Item {
   }
 }
 //敵クラス
-class tekic {
+class Enemy {
   constructor(_alive, _x, _y, _image) {
     this.x = _x;
     this.y = _y;
@@ -73,7 +73,7 @@ class tekic {
   }
 }
 //敵弾クラス
-class tamaa {
+class BombA {
   constructor(_alive, _image1, _image2, _image3) {
     this.image1 = _image1;
     this.image2 = _image2;
@@ -84,7 +84,7 @@ class tamaa {
     this.l = 0;
   }
 }
-class tamab {
+class BombB {
   constructor(_alive, _image) {
     this.image = _image;
     this.alive = _alive;
@@ -94,7 +94,7 @@ class tamab {
     this.my = 0;
   }
 }
-class tamac {
+class BombC {
   constructor(_alive, _image1, _image2) {
     this.imagea = _image1;
     this.imageb = _image2;
@@ -104,7 +104,7 @@ class tamac {
     this.limit = 0;
   }
 }
-class tamad {
+class BombD {
   constructor(_alive, _image) {
     this.image = _image;
     this.alive = _alive;
@@ -118,111 +118,131 @@ class tamad {
     this.lengemv = 0;
   }
 }
-for (i = 0; i <= 4; i++) {
-  item[i]=new Item(false,0,0,0)
+//４アイテムのインスタンス生成
+for (let i = 0; i <= 4; i++) {
+  item[i]=new Item(false, 0, 0, 0);
 }
-for (i = 0; i <= 4; i++) {
-  for (j = 0; j <= 9; j++) {
+
+//インベーダのインスタンス生成
+for (let i = 0; i <= 4; i++) {
+  for (let j = 0; j <= 9; j++) {
     switch (i) {
       case 0:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv5_32x24.png");
+        teki[i][j] = new Enemy(false, j * 50, i * 50 + 50, "res/inv5_32x24.png");
         break;
       case 1:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv4_32x24.png");
+        teki[i][j] = new Enemy(false, j * 50, i * 50 + 50, "res/inv4_32x24.png");
         break;
       case 2:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv3_32x24.png");
+        teki[i][j] = new Enemy(false, j * 50, i * 50 + 50, "res/inv3_32x24.png");
         break;
       case 3:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv2_32x24.png");
+        teki[i][j] = new Enemy(false, j * 50, i * 50 + 50, "res/inv2_32x24.png");
         break;
       case 4:
-        teki[i][j] = new tekic(false,j * 50, i * 50 + 50, "res/inv1_32x24.png");
+        teki[i][j] = new Enemy(false, j * 50, i * 50 + 50, "res/inv1_32x24.png");
         break;
     }
   }
 }
-i = 0;
-  for (j = 0; j <= 30; j++) {
-        tama[i][j] = new tamaa(false, "res/tama1a_16x12.png", "res/tama1b_16x12.png", "res/tama1c_16x12.png");
-    }
-    i = 1;
-    for (j = 0; j <= 5; j++) {
-      tama[i][j] = new tamab(false, "res/tamat_16x12.png");
-    }
-      i = 2;
-      for (j = 0; j <= 3; j++) {
-        tama[i][j] = new tamac(false, "res/tamaL4_32x24.png", "res/tamaL5_32x24.png");
-        }
-        i = 3;
-        for (j = 0; j <= 4; j++) {
-          tama[i][j] = new tamad(false, "res/tamah_16x12.png");
-        }
-      for (i = 0; i <= 6; i++) {
-        jtama[i] = new Jtama(false,0, 0, "res/tamaji_16x12.png");
+
+//敵の三方向ミサイルのインスタンス生成
+for (let j = 0; j <= 30; j++) {
+  tama[0][j] = new BombA(false, "res/tama1a_16x12.png", "res/tama1b_16x12.png", "res/tama1c_16x12.png");
 }
+
+//敵の誘導弾ミサイルのインスタンス生成
+for (let j = 0; j <= 5; j++) {
+  tama[1][j] = new BombB(false, "res/tamat_16x12.png");
+}
+
+//敵のレーザービームのインスタンス生成
+for (let j = 0; j <= 3; j++) {
+  tama[2][j] = new BombC(false, "res/tamaL4_32x24.png", "res/tamaL5_32x24.png");
+}
+
+//敵の弾幕ミサイルのインスタンス生成
+for (let j = 0; j <= 4; j++) {
+  tama[3][j] = new BombD(false, "res/tamah_16x12.png");
+}
+
+//自機のミサイルのインスタンス生成
+for (let i = 0; i <= 6; i++) {
+  jtama[i] = new Jtama(false, 0, 0, "res/tamaji_16x12.png");
+}
+
 //自機表示・枠表示
 function draw() {
-  jikiimg = new Image();
+  //自機の表示
+	jikiimg = new Image();
   jikiimg.src = "res/jiki_32x24.png";
-    if (!miss&&!shield) {
-      if (invincible>0&&invincible%2==1){
-      }else{
-        ctx.globalAlpha = 1;
-    ctx.drawImage(jikiimg, x, 450, 40, 40);
-      }
-     }else if (!miss&&shield) {
-      jikisimg = new Image();
-      jikisimg.src = "res/jikib_32x24.png";
+  if (!miss&&!shield) {	//ミス状態でない、かつシールド状態でない（通常状態のとき）
+    if (invincible>0&&invincible%2==1){	//無敵タイマ起動中、かつ、カウントが奇数のとき
+    }else{
       ctx.globalAlpha = 1;
-      ctx.drawImage(jikisimg, x, 450, 40, 40);
-    } else {
+    	ctx.drawImage(jikiimg, x, 450, 40, 40);
+    }
+  }else if (!miss&&shield) {	//ミス状態でない、かつシールド中
+    jikisimg = new Image();
+    jikisimg.src = "res/jikib_32x24.png";
+    ctx.globalAlpha = 1;
+    ctx.drawImage(jikisimg, x, 450, 40, 40);
+  } else {	//ミスしたとき
     jikimissimg = new Image();
     ctx.globalAlpha = 0.4;
     jikimissimg.src = "res/jiki_miss_32x24.png";
     ctx.drawImage(jikimissimg, x - 10, 450 - 10, 60, 60);
     ctx.globalAlpha = 1;
   }
+
+	//ゲーム枠の表示
   ctx.beginPath();
   ctx.rect(0, 0, 800, 500);
   ctx.strokeStyle = "rgba(0, 0, 255)";
   ctx.stroke();
   ctx.closePath();
 
+	//残機、アイテム、スコアの枠表示
   ctx.beginPath();
-  ctx.rect(800, 0, 20, 500);
-  ctx.rect(800, 0, 400, 20);
-  ctx.rect(800, 300, 400, 20);
-  ctx.rect(800, 480, 400, 20);
-  ctx.rect(1180, 0, 20, 500);
-  ctx.strokeStyle = "rgba(0, 0, 255)";
-  ctx.stroke();
-  ctx.fillStyle = "rgba(0, 0, 255)";
-  ctx.fill();
+  ctx.rect(800, 0, 20, 500);		//左枠
+  ctx.rect(800, 0, 400, 20);		//上の枠
+  ctx.rect(800, 300, 400, 20);	//真ん中の枠
+  ctx.rect(800, 480, 400, 20);	//下の枠
+  ctx.rect(1180, 0, 20, 500);		//右枠
+  ctx.strokeStyle = "rgba(0, 0, 255)";	//輪郭を青色で指定
+  ctx.stroke();	//枠線の描画
+  ctx.fillStyle = "rgba(0, 0, 255)";		//塗りつぶす色を青色で指定
+  ctx.fill();	//塗りつぶし
   ctx.closePath();
-if (zanki>=1&&zanki<=3){
-for (i=0;i<zanki;i++){
-  ctx.drawImage(jikiimg, 900 + i*100, 50, 60, 60);
-}
-}else if (zanki>3&&zanki<=6){
-  for (i=0;i<3;i++){
-    ctx.drawImage(jikiimg, 900 + i*100, 30, 60, 60);
-  }
+
+	//残機の表示
+	if (zanki>=1&&zanki<=3){
+		for (i=0;i<zanki;i++){
+  		ctx.drawImage(jikiimg, 900 + i*100, 50, 60, 60);
+		}
+	}else if (zanki>3&&zanki<=6){
+  	for (i=0;i<3;i++){
+    	ctx.drawImage(jikiimg, 900 + i*100, 30, 60, 60);
+  	}
     for (i=0;i<zanki-3;i++){
-    ctx.drawImage(jikiimg, 900 + i*100, 100, 60, 60);
-  }
-}else if (zanki>=7){
-  ctx.drawImage(jikiimg, 900, 50, 60, 60);
-  ctx.font = "48px serif";
-  ctx.fillText("✖", 1000, 100);
-  ctx.fillText(String(zanki), 1050, 100);
-}
+    	ctx.drawImage(jikiimg, 900 + i*100, 100, 60, 60);
+  	}
+	}else if (zanki>=7){
+  	ctx.drawImage(jikiimg, 900, 50, 60, 60);
+  	ctx.font = "48px serif";
+  	ctx.fillText("✖", 1000, 100);
+  	ctx.fillText(String(zanki), 1050, 100);
+	}
+
+	//ステージ数、スコアの表示
   ctx.font = "48px serif";
   ctx.fillText("STAGE", 850, 380);
   ctx.fillText(String(stage), 1020, 380);
   ctx.font = "48px serif";
   ctx.fillText("Score", 850, 430);
   ctx.fillText(String(score), 980, 430);
+
+	//アイテムの表示
   bombimg = new Image();
   bombimg.src = "res/item_b.png";
   for (i=0;i<bomb;i++){
@@ -235,91 +255,108 @@ for (i=0;i<zanki;i++){
   }
 }
   
-
-//自弾処理
+//自機のミサイル処理
 function shotmove() {
   tamaimg = new Image();
   tamaimg.src = "res/tamaji_16x12.png";
-  for (h=0;h<=6;h++){
-  if(jtama[h].alive){
-    if(!miss&&!clear){
-    jtama[h].y--;
-    }
-    ctx.drawImage(tamaimg, jtama[h].x, jtama[h].y, 1, 10);
-  for (i=0;i<=4;i++){
-    for (j=0;j<=9;j++){
-      if(teki[i][j].alive){
-        if (jtama[h].y<=i*50+74&&jtama[h].y>i*50+40){
-          if (jtama[h].x>=teki[i][j].x+tx&&jtama[h].x<=teki[i][j].x+tx+32){
-    teki[i][j].alive=false;
-    score=score+(5-i)*100;
-    if (score>=(extend+1)*10000){
-      zanki++;
-      extend++;
-    }
-    jtama[h].alive=false;
-    shot--;
-    tcount--;
-    dropchance(i,j);
-    if (tcount == 0){
-      clear=true;
-      stopeffect=0;
-    }
-  }
-}}}}
-if (jtama[h].y<0){
-  shot--;
-  jtama[h].alive=false;
-}
-}
-}
+  for (h = 0; h <= 6; h++){
+  	if(jtama[h].alive){
+			//ミサイルの移動と表示
+    	if(!miss && !clear){
+    		jtama[h].y--;
+    	}
+    	ctx.drawImage(tamaimg, jtama[h].x, jtama[h].y, 1, 10);
+
+			//ミサイルと敵機との当たり判定
+  		for (i = 0; i <= 4; i++){
+    		for (j = 0; j <= 9; j++){
+      		if(teki[i][j].alive){	//生きている敵がいたら
+        		if (jtama[h].y <= i*50+74 && jtama[h].y > i*50+40){	//ミサイルの先頭の位置が敵の高さの範囲に入っているとき
+          		if (jtama[h].x >= teki[i][j].x+tx && jtama[h].x <= teki[i][j].x+tx+32){	//ミサイルのx座標が敵の幅の範囲に入っているとき
+    						teki[i][j].alive = false;	//敵を倒した状態にセットする
+    						score = score+(5-i)*100;	//スコアを加算（上段の敵ほど得点が高い）
+    						if (score >= (extend+1)*10000){	//	//1万点ごとに自機を増やす
+      						zanki++;
+      						extend++;
+    						}
+    						jtama[h].alive = false;	//ミサイルを消す
+    						shot--;		//ミサイルの数を1つ減らす
+    						tcount--;	//敵のカウント数を1つ減らす
+    						dropchance(i,j);	//ドロップアイテムの抽選
+    						if (tcount == 0){	//敵の数がゼロになったとき
+      						clear = true;		//クリア状態にセット
+      						stopeffect = 0;	//ストップ効果をクリア
+    						}
+  						}
+						}
+					}
+				}
+			}
+			if (jtama[h].y<0){	//ミサイルのy座標が上限を超えた（弾が敵に当たらなかった）
+  			shot--;	//ミサイルの数を1つ減らす
+  			jtama[h].alive=false;	//ミサイルを消す
+			}
+		}
+	}
 }
 
 //敵・弾リセット処理
 function nextstage() {
-    clear = false;
+  clear = false;	//クリア状態を戻す
+
+	//敵をすべて復活させる
   for (i = 0; i <= 4; i++) {
     for (j = 0; j <= 9; j++) {
       teki[i][j].alive = true;
     }
   }
-  stage++;
-  shot =0;
-  tcount=50;
-  x = 0;
-  tx = 0;
-  tmove = 2;
-  miss=false;
-  if (bomb==0){
-    bomb++;
+
+	//各変数のクリア
+  stage++;	//ステージ数を1つアップする
+  shot = 0;	//ミサイルの数をクリア
+  tcount = 50;	//敵のカウント数をクリア
+  x = 0;	//自機のx座標をクリア
+  tx = 0;	//インベーダの移動用のx座標
+  tmove = 2;	//インベーダの移動量
+  miss = false;	//ミス状態のクリア
+
+  if (bomb == 0){	//インベーダのミサイルを破壊する爆弾が0個のとき
+    bomb++;	//インベーダのミサイルを破壊する爆弾を1つ増やす
   }
+
+	//自機のミサイルをすべて無効にする
   for (i = 0; i <= 6; i++) {
     jtama[i].alive = false;
   }
+
+	//アイテムをすべて無効にする
   for (j = 0; j <= 4; j++) {
     item[j].alive = false;
   }
-  
-tamareset();
+
+	tamareset();	//インベーダのミサイルをすべて無効にする
 }
-//敵弾消し
+//インベーダのミサイルをすべて無効にする
 function tamareset() {
-i = 0;
-for (j = 0; j <= 30; j++) {
-  tama[i][j].alive = false;
-}
-i = 1;
-for (j = 0; j <= 5; j++) {
-  tama[i][j].alive = false;
-}
-i = 2;
-for (j = 0; j <= 3; j++) {
-  tama[i][j].alive = false;
-}
-i = 3;
-for (j = 0; j <= 4; j++) {
-  tama[i][j].alive = false;
-}
+	// for (j = 0; j <= 30; j++) {
+	// 	tama[0][j].alive = false;
+	// }
+	// for (j = 0; j <= 5; j++) {
+	// 	tama[1][j].alive = false;
+	// }
+	// for (j = 0; j <= 3; j++) {
+	// 	tama[2][j].alive = false;
+	// }
+	// for (j = 0; j <= 4; j++) {
+	// 	tama[3][j].alive = false;
+	// }
+
+	for (let i = 0; i < tama.length; i++) {
+		for (let j = 0; j < tama[i].length; j++) {
+			tama[i][j].alive = false;
+		}
+	}
+
 }
 //敵描写
 function tdrow() {
@@ -330,19 +367,23 @@ function tdrow() {
         tekiimg.src = teki[i][j].image;
         ctx.drawImage(tekiimg, teki[i][j].x+tx, teki[i][j].y,32,24);
         if (!miss) {
-        if (teki[i][j].x+tx>800-32){
-          tmove=-2;
-        }else if (teki[i][j].x+tx<0){
-          tmove=2;
-        }
-            shotchance(i,j);
-      }}}}
-      if (!miss) {
-        tact = tact + 1;
-  if (tact >= tcount) {
-    tx = tx + tmove;
-    tact=0;
-  }}
+        	if (teki[i][j].x+tx>800-32){
+          	tmove=-2;
+        	}else if (teki[i][j].x+tx<0){
+          	tmove=2;
+        	}
+          shotchance(i,j);
+      	}
+			}
+		}
+	}
+  if (!miss) {
+    tact = tact + 1;
+  	if (tact >= tcount) {
+    	tx = tx + tmove;
+    	tact=0;
+  	}
+	}
 }
 //ドロップアイテム抽選
 function dropchance(_i,_j){
@@ -771,6 +812,8 @@ function game() {
     shotwait++;
   bombwait++;
   invincible--;
+
+		debug();
   }
 //メイン処理を定期的に実行
 setInterval(game, 10);
@@ -849,4 +892,7 @@ function keyUpHandler(e) {
   if (e.key === 'a') {
     keyl = false;
   }
+}
+function debug() {
+	// console.log(x);
 }
