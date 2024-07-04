@@ -82,6 +82,11 @@ wall_right = new Wall(815, 300, 30, 600, 0, true, "red");
 wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
+//ブロックの種類を設定
+heavy=new BlockType(2,"#C83232","#800000",100);
+middle=new BlockType(1.6,"#32D232","#008000",50);
+light=new BlockType(1.3,"#78A0FF","#0075AD",25);
+
 // 物理世界を更新
 const runner = Runner.create();
 Runner.run(runner, engine);
@@ -96,6 +101,7 @@ world_canvas.addEventListener("click", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
   });
+  setblock(1);
   main();
 }
 //　Main関数
@@ -105,29 +111,42 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function move() {
+  //キー入力状況に応じた自機の上下左右移動
   if (keyr)jikix=jikix+3;
   if (keyl)jikix=jikix-3;
   if (keyd)jikiy=jikiy+3;
   if (keyu)jikiy=jikiy-3;
+  if (jikix<44)jikix=44;
+  if (jikix>786)jikix=786;
+  if (jikiy>586)jikiy=586;
+  if (jikiy<400)jikiy=400;
   Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
-
+  //自機の向きをマウスカーソルの方向にする処理
   jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)
   Matter.Body.setAngle(jiki.body,jikiangle+Math.PI/2, [updateVelocity=false]);//90度分補正
-
 }
 
 //　描画関数
 function draw() {
+  //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
     if (tamas[i].isOffScreen()) {
       tamas[i].removeFromWorld();
       tamas.splice(i,1);
     }else{
-//      tamas[i].show();
       i++;
     }
   }
-  console.log(tamas.length);
+  for(i=0;i<blocks.length;){
+    if (blocks[i].isOffScreen()) {
+      blocks[i].removeFromWorld();
+      blocks.splice(i,1);
+    }else{
+      i++;
+    }
+  }
+  console.log(blocks.length);
+  //物理演算範囲外の描写
   context.beginPath();
   context.rect(830, 0, 470,30 );
   context.rect(1170, 0, 30, 600);
@@ -143,9 +162,16 @@ function draw() {
 function shot(renge) {
 tamas.push(new Tama(jikix,jikiy,jikiangle,renge/20000))
 }
-function setblock(x) {
-for (i=0;i++;i<x){
-  blocks.push(new Block(jikix,jikiy,jikiangle));
+function setblock(stage) {
+  switch(stage){
+  case 1:
+  for(i=1;i<=3;i++){
+    for(y=0;y<5;y++){
+      if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+      if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+      if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+    }
+  }
 }
 }
 class Wall {
@@ -165,20 +191,29 @@ class Wall {
     Composite.add(world, this.body);
   }
 }
+class BlockType{
+  constructor(de, cl1, cl2,hp){
+    this.density=de;
+    this.coller1=cl1;
+    this.coller2=cl2;
+    this.hp=hp;
+  }
+}
 class Block {
   //　コンストラクタ宣言
-  constructor(x, y, hen, r, a, c,hp){
+  constructor(x, y, type,hen, r, a){
+    this.type=type;
     let optisons = {
       restitution: 1,
       friction: 0,
-      density: 1,
+      density: type.de,
       angle: a,
       isStatic: true,
       render: {
-        fillStyle: c
+        fillStyle: type.coller1
       },
     };
-    this.hp=hp;
+    this.hp=type.hp;
     this.body = Bodies.polygon(x, y, hen, r, optisons);
     Composite.add(world, this.body);
   }
@@ -186,12 +221,11 @@ class Block {
     this.body.isStatic=false;
   }
   isOffScreen() {
-      let pos = this.body.position;
-      return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+    let pos = this.body.position;
+    return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
-
   removeFromWorld() {
-      World.remove(world, this.body);
+    World.remove(world, this.body);
   }
 }
 class Jiki {
