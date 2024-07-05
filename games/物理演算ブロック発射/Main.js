@@ -13,6 +13,10 @@ const World = Matter.World;
 const Body       = Matter.Body;
 
 //初期変数設定
+const commonCategory = 0x0001, // 全オブジェクト共通のカテゴリ
+  jikiCategory = 0x0002, // 自機オブジェクトのカテゴリ
+  blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテゴリ
+  bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
@@ -96,6 +100,7 @@ world_canvas.addEventListener("click", event => {
 //  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
   shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)))
 });
+
 // マウスカーソルの位置の取得
   world_canvas.addEventListener("mousemove", event => {
     mousey=event.offsetY;
@@ -146,6 +151,15 @@ function draw() {
     }
   }
   console.log(blocks.length);
+    //衝突判定
+//    Matter.Events.on(engine, 'collisionStart', function(event) {
+ //     let pairs = event.pairs;
+  //    console.log(pairs.length);
+ //     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
+ //      console.log(pair); //これで何がぶつかっているかがわかる
+       
+ //     });
+ //   });
   //物理演算範囲外の描写
   context.beginPath();
   context.rect(830, 0, 470,30 );
@@ -186,6 +200,9 @@ class Wall {
       render: {
         fillStyle: c
       },
+      collisionFilter: {
+        category: commonCategory
+      },
     };
     this.body = Bodies.rectangle(x, y, w, h, optisons);
     Composite.add(world, this.body);
@@ -211,6 +228,9 @@ class Block {
       isStatic: true,
       render: {
         fillStyle: type.coller1
+      },
+      collisionFilter: {
+        category: blockCategory
       },
     };
     this.hp=type.hp;
@@ -239,6 +259,9 @@ class Jiki {
       render: {
         fillStyle: "#2020ff"
       },
+      collisionFilter: {
+        category: jikiCategory
+      },
       isStatic: true,
     };
     this.color = "blue";
@@ -260,10 +283,15 @@ class Tama {
           render: {
             fillStyle: "#ffffff"
           },
+          collisionFilter: {
+            category: commonCategory,
+            mask:commonCategory|blockCategory|bossCategory
+          },
           force:{x:Math.cos(jikiangle)*fce,y:Math.sin(jikiangle)*fce},
           isStatic: false,
       };
       this.r = 10;
+      this.timer=100;
       this.body = Bodies.circle(x, y, this.r, optisons);
       Composite.add(world, this.body);
   }
