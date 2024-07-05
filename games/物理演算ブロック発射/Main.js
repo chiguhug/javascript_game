@@ -20,7 +20,8 @@ const commonCategory = 0x0001, // 全オブジェクト共通のカテゴリ
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
-let substage = 1;
+let substage = 0;
+let setstage = false
 let score = 0;
 let jikix=50;
 let jikiy=550;
@@ -87,9 +88,9 @@ wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
 //ブロックの種類を設定
-heavy=new BlockType(2,"#C83232","#800000",100);
-middle=new BlockType(1.6,"#32D232","#008000",50);
-light=new BlockType(1.3,"#78A0FF","#0075AD",25);
+heavy=new BlockType(1,"#C83232","#800000",100);
+middle=new BlockType(1,"#32D232","#008000",50);
+light=new BlockType(1,"#78A0FF","#0075AD",25);
 
 // 物理世界を更新
 const runner = Runner.create();
@@ -106,14 +107,14 @@ world_canvas.addEventListener("click", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
   });
-  setblock(1);
-  main();
 }
 //　Main関数
+//メイン処理を定期的に実行
+setInterval(main, 10);
 function main() {
   move();
   draw();
-  window.requestAnimationFrame(main);
+//  window.requestAnimationFrame(main);
 }
 function move() {
   //キー入力状況に応じた自機の上下左右移動
@@ -133,6 +134,10 @@ function move() {
 
 //　描画関数
 function draw() {
+  if(!setstage){
+  setblock(1);
+  setstage=true;
+}
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
     if (tamas[i].isOffScreen()) {
@@ -151,15 +156,18 @@ function draw() {
     }
   }
   console.log(blocks.length);
+  if (blocks.length==0){
+    setblock=false;
+  }
     //衝突判定
-//    Matter.Events.on(engine, 'collisionStart', function(event) {
- //     let pairs = event.pairs;
-  //    console.log(pairs.length);
- //     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
- //      console.log(pair); //これで何がぶつかっているかがわかる
+    Matter.Events.on(engine, "collisionStart", function(event) {
+     let pairs = event.pairs;
+    console.log(pairs.length);
+     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
+      console.log(pair); //これで何がぶつかっているかがわかる
        
- //     });
- //   });
+     });
+   });
   //物理演算範囲外の描写
   context.beginPath();
   context.rect(830, 0, 470,30 );
@@ -225,12 +233,14 @@ class Block {
       friction: 0,
       density: type.de,
       angle: a,
-      isStatic: true,
+      isStatic: false,
+      frictionAir: 0.9,
       render: {
         fillStyle: type.coller1
       },
       collisionFilter: {
-        category: blockCategory
+        category: blockCategory,
+        mask:commonCategory|jikiCategory|bossCategory
       },
     };
     this.hp=type.hp;
