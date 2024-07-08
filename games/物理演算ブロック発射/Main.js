@@ -88,9 +88,9 @@ wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
 //ブロックの種類を設定
-heavy=new BlockType(1,"#C83232","#800000",100);
-middle=new BlockType(1,"#32D232","#008000",50);
-light=new BlockType(1,"#78A0FF","#0075AD",25);
+heavy=new BlockType(2,"#C83232","#800000",100);
+middle=new BlockType(1.6,"#32D232","#008000",50);
+light=new BlockType(1.2,"#78A0FF","#0075AD",25);
 
 // 物理世界を更新
 const runner = Runner.create();
@@ -107,14 +107,14 @@ world_canvas.addEventListener("click", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
   });
+main();
 }
 //　Main関数
-//メイン処理を定期的に実行
-setInterval(main, 10);
+
 function main() {
   move();
   draw();
-//  window.requestAnimationFrame(main);
+  window.requestAnimationFrame(main);
 }
 function move() {
   //キー入力状況に応じた自機の上下左右移動
@@ -140,6 +140,10 @@ function draw() {
 }
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
+    tamas[i].timer--
+    if (tamas[i].timer==0) {
+      tamas[i].body.collisionFilter.mask=commonCategory|blockCategory|bossCategory|jikiCategory;
+    }
     if (tamas[i].isOffScreen()) {
       tamas[i].removeFromWorld();
       tamas.splice(i,1);
@@ -157,17 +161,28 @@ function draw() {
   }
   console.log(blocks.length);
   if (blocks.length==0){
-    setblock=false;
+    setstage=false;
   }
     //衝突判定
     Matter.Events.on(engine, "collisionStart", function(event) {
-     let pairs = event.pairs;
-    console.log(pairs.length);
-     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-      console.log(pair); //これで何がぶつかっているかがわかる
-       
-     });
-   });
+      let pairs = event.pairs;
+    pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
+             if (pair.bodyA.collisionFilter.category == blockCategory) {
+              if(pair.bodyA.isStatic){
+                Matter.Body.setStatic(pair.bodyA, false);
+                Body.setMass(pair.bodyA,pair.bodyA.massset)
+               }
+             }
+             if (pair.bodyB.collisionFilter.category == blockCategory) {
+               if(pair.bodyB.isStatic){
+                Matter.Body.setStatic(pair.bodyB, false);
+                 Body.setMass(pair.bodyB,pair.bodyA.massset)
+               }
+             }
+
+//      console.log(pair); //これで何がぶつかっているかがわかる
+    });
+  });
   //物理演算範囲外の描写
   context.beginPath();
   context.rect(830, 0, 470,30 );
@@ -217,8 +232,8 @@ class Wall {
   }
 }
 class BlockType{
-  constructor(de, cl1, cl2,hp){
-    this.density=de;
+  constructor(ma, cl1, cl2,hp){
+    this.mass=ma;
     this.coller1=cl1;
     this.coller2=cl2;
     this.hp=hp;
@@ -229,26 +244,22 @@ class Block {
   constructor(x, y, type,hen, r, a){
     this.type=type;
     let optisons = {
+      hp:type.hp,
       restitution: 1,
       friction: 0,
-      density: type.de,
+      massset: type.mass,
       angle: a,
-      isStatic: false,
-      frictionAir: 0.9,
+      isStatic: true,
       render: {
-        fillStyle: type.coller1
+        fillStyle: type.coller1,
+        fillStyle2: type.coller1
       },
       collisionFilter: {
         category: blockCategory,
-        mask:commonCategory|jikiCategory|bossCategory
       },
     };
-    this.hp=type.hp;
     this.body = Bodies.polygon(x, y, hen, r, optisons);
     Composite.add(world, this.body);
-  }
-  break(){
-    this.body.isStatic=false;
   }
   isOffScreen() {
     let pos = this.body.position;
@@ -278,10 +289,6 @@ class Jiki {
     this.body = Bodies.trapezoid(x, y,20,30,0.6,optisons);
     Composite.add(world, this.body);
   }
-
-  up(){
-
-  }
 }
 class Tama {
   //　コンストラクタ宣言
@@ -301,7 +308,7 @@ class Tama {
           isStatic: false,
       };
       this.r = 10;
-      this.timer=100;
+      this.timer=50;
       this.body = Bodies.circle(x, y, this.r, optisons);
       Composite.add(world, this.body);
   }
