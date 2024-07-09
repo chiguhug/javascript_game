@@ -14,36 +14,34 @@ var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 //初期設定
 let x = 0;	//自機のx座標
-let stage = 0;
-let score = 0;
-let keyr = false;
-let keyl = false;
-let shot = 0;
-let power = 0;
-let shotwait = 0;
-let bomb = 2;	//インベーダのミサイルを破壊する爆弾の数
-let bombwait = 50;
-let zanki = 3;
-// let stopeffect = 0;
-let newstage = true;
-let clear = true;
-let miss = false;
-let gameover = false;
-let extend = 0;
-let shield = false;
-let invincible = 0;
-let tx = 0;
-let tmove = 2;
-let tcount = 50;
-let retflag = false;
-let tact = 0;
-var teki = [[], [], [], [], []];
-var tama = [[], [], [], [], []];
-var jtama = [];
-var item = [];
+let stage = 0;  //ステージ数
+let score = 0;  //スコア
+let keyr = false; //右移動キー押下状態クリア
+let keyl = false; //左移動キー押下状態クリア
+let shot = 0; //自機のミサイル数
+let power = 0;  //パワーアップアイテム数
+let shotwait = 0; //次のミサイル発射までの待ち時間
+let bomb = 2;	//ボムアイテム数
+let bombwait = 50;  //ボム効果用のカウンタ
+let zanki = 3;  //残機数
+let clear = true; //クリア状態（クリア時、一旦動作を止めている）
+let miss = false; //被弾状態（被弾時、一旦動作を止めている）
+let gameover = false; //ゲームオーバー状態クリア
+let extend = 0; //ボーナス得点（1機アップ）のカウンタ
+let shield = false; //シールド状態クリア
+let invincible = 0; //無敵状態
+let tx = 0; //インベーダーのx座標
+let tmove = 2;  //インベーダーの移動量
+let tcount = 50;  //インベーダーの生存数
+let tact = 0; //インベーダーを移動判定用カウンタ（インベーダーの数が減ってきたら移動速度を上げるため）
+var teki = [[], [], [], [], []];  //インベーダーの管理用配列
+var tama = [[], [], [], [], []];  //インベーダーのミサイルの管理用配列
+var jtama = [];  //自機のミサイルの管理用配列
+var item = [];  //アイテムの管理用配列
 
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
+
 //自弾クラス
 class Jtama {
   constructor(_alive, _x, _y, _image) {
@@ -169,6 +167,8 @@ for (let j = 0; j <= 4; j++) {
 for (let i = 0; i <= 6; i++) {
   jtama[i] = new Jtama(false, 0, 0, "res/tamaji_16x12.png");
 }
+//メイン処理を定期的に実行
+setInterval(game, 10);
 
 //自機表示・枠表示
 function draw() {
@@ -284,7 +284,6 @@ function shotmove() {
     						dropchance(i, j);	//ドロップアイテムの抽選
     						if (tcount == 0){	//敵の数がゼロになったとき
       						clear = true;		//クリア状態にセット
-      						// stopeffect = 0;	//ストップ効果をクリア
     						}
   						}
 						}
@@ -335,6 +334,7 @@ function nextstage() {
 
 	tamareset();	//インベーダのミサイルをすべて無効にする
 }
+
 //インベーダのミサイルをすべて無効にする
 function tamareset() {
 	for (let i = 0; i < tama.length; i++) {
@@ -344,6 +344,7 @@ function tamareset() {
 	}
 
 }
+
 //敵描写
 function tdrow() {
   for (let i = 0; i < teki.length; i++) {
@@ -373,6 +374,7 @@ function tdrow() {
   	}
 	}
 }
+
 //ドロップアイテム抽選
 function dropchance(_i, _j){
   let ratio = Math.random()*100;  //アイテムの抽選
@@ -398,6 +400,7 @@ function dropchance(_i, _j){
     }
   }
 }
+
 //敵が弾を撃つかどうかの抽選
 function shotchance(_i, _j){
   // let i = _i;
@@ -630,6 +633,7 @@ function tamamoveb(){
     }
   }
 }
+
 //ビーーーーーーーーーーーーーーーーーーーーム
 function tamamovec(){
   let xx = 0;
@@ -758,6 +762,7 @@ function respone(){
     nextstage();  //
   }
 }
+
 //クリア表示
 function cleareffect() {
   clrimg = new Image();
@@ -766,12 +771,14 @@ function cleareffect() {
     ctx.drawImage(clrimg, 100,200, 500, 100);
   }
 }
+
 //ゲームオーバー表示
 function gameovereffect() {
   clrimg = new Image();
   clrimg.src = "res/text_gameover_e.png";
   ctx.drawImage(clrimg, 100,200, 500, 100);
 }
+
 //ボムエフェクト
 function bombeffect() {
   ctx.beginPath();
@@ -833,8 +840,6 @@ function game() {
   //デバッグ用
 	debug();
 }
-//メイン処理を定期的に実行
-setInterval(game, 10);
 
 //キー入力
 function keyDownHandler(e) {
@@ -889,6 +894,7 @@ function keyUpHandler(e) {
     keyl = false; //左キー押下状態をクリア
   }
 }
+
 function debug() {
 	// console.log(x);
 }
