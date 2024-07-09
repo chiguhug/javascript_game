@@ -42,7 +42,6 @@ var tama = [[], [], [], [], []];
 var jtama = [];
 var item = [];
 
-document.write
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 //自弾クラス
@@ -113,9 +112,9 @@ class BombD {
     this.mx = 0;
     this.my = 0;
     this.ra = 0;
-    this.ranow = 0;
-    this.lenge = 0;
-    this.lengemv = 0;
+    this.ra_now = 0;
+    this.range = 0;
+    this.range_mv = 0;
   }
 }
 //４アイテムのインスタンス生成
@@ -381,7 +380,7 @@ function dropchance(_i, _j){
     for (let i = 0; i < item.length; i++) {
       if (!item[i].alive) { //アイテムが有効でないとき
         item[i].alive = true; //アイテムを有効とする
-        item[i].x = teki[_i][_j].x + 12 + tx; //アイテムを落とすインベーダーのx座標をセット
+        item[i].x = teki[_i][_j].x + tx - 4; //アイテムを落とすインベーダーのx座標をセット
         item[i].y = teki[_i][_j].y + 16; //アイテムを落とすインベーダーのy座標をセット
         if (ratio < 1) {  //抽選結果が1より小さいとき
           item[i].type = 5; //1機アップアイテムをセット
@@ -454,9 +453,6 @@ function shotchance(_i, _j){
       break;
     //最上段のインベーダーのとき
     case 0:
-      let xlenge = 0;
-      let ylenge = 0;
-      let angle = 0;
       ratio = Math.random()*8000000; //抽選
       if(ratio < stage*10 + 5000 - tcount*100) {  //ステージ数と生き残っているインベーダーの数で抽選
         for(let k = 0; k < tama[3].length; k++) {
@@ -464,15 +460,15 @@ function shotchance(_i, _j){
             tama[3][k].alive = true; //ミサイル発射状態にセット
             tama[3][k].x = teki[_i][_j].x + 12 + tx;  //ミサイルのx座標を対象となるインベーダーのx座標にセット
             tama[3][k].y = teki[_i][_j].y + 16;  //ミサイルのy座標を対象となるインベーダーのy座標にセット
-            tama[3][k].ra = Math.random()*0.02-0.04;
-            tama[3][k].ranow = 0;
-            tama[3][k].lengemv = Math.random()*0.2-0.4;
-            tama[3][k].lenge = 20;
-            xlenge = x + 20-tama[3][k].x;
-            ylenge = 470 - tama[3][k].y;
-            angle = Math.atan2(ylenge, xlenge);
-            tama[3][k].mx = Math.cos(angle)*1;
-            tama[3][k].my = Math.sin(angle)*1;
+            tama[3][k].ra = Math.random()*0.02-0.04;  //回転速度をセット
+            tama[3][k].ra_now = 0;
+            tama[3][k].range_mv = 0.4 - Math.random()*0.2;  //中心からの移動量をセット
+            tama[3][k].range = -20; //円の半径の初期値をセット
+            let x_renge = x + 20-tama[3][k].x;  //自機と弾幕とのx座標の距離を取得
+            let y_renge = 470 - tama[3][k].y;  //自機と弾幕とのy座標の距離を取得
+            let angle = Math.atan2(y_renge, x_renge); //自機と弾幕とのラジアン角の取得
+            tama[3][k].mx = Math.cos(angle)*1;  //弾幕のx座標の移動量をセット
+            tama[3][k].my = Math.sin(angle)*1;  //弾幕のy座標の移動量をセット
             break;
           }
         }
@@ -683,19 +679,22 @@ function tamamoved(){
       if (!miss && !clear) { //自機が被弾状態でない、かつ、クリア状態でない
         tama[3][k].x = tama[3][k].x + tama[3][k].mx;  //弾幕のx座標の更新（自機に向かう角度）
         tama[3][k].y = tama[3][k].y + tama[3][k].my;  //弾幕のy座標の更新（自機に向かう角度）
-        tama[3][k].ranow = tama[3][k].ranow + tama[3][k].ra;  //-0.02～-0.04のいずれかの値で毎回更新（反時計回りにするための移動量）
-        tama[3][k].lenge = tama[3][k].lenge + tama[3][k].lengemv; //  //-0.2～-0.4のいずれかの値で更新
+        tama[3][k].ra_now = tama[3][k].ra_now + tama[3][k].ra;  //-0.02～-0.04のいずれかの値で毎回更新（反時計回りにするための移動量）
+        tama[3][k].range = tama[3][k].range + tama[3][k].range_mv; //  //-0.2～-0.4のいずれかの値で更新（円の中心からの半径に相当）
       }
-      //
+      //弾幕の画像をセット
       tamaimg = new Image();
       tamaimg.src = tama[3][k].image;
+      //スター表示
       for (let i = 1; i <= 10; i++) {
         if (i%2 == 1) { //奇数番号のとき
-          xx = Math.cos(tama[3][k].ranow+rg*i) * tama[3][k].lenge / 2;
-          yy = Math.sin(tama[3][k].ranow+rg*i) * tama[3][k].lenge / 2;
+          //内側の弾幕の座標をセット
+          xx = Math.cos(tama[3][k].ra_now+rg*i) * tama[3][k].range / 2;
+          yy = Math.sin(tama[3][k].ra_now+rg*i) * tama[3][k].range / 2;
         } else { //偶数番号のとき
-          xx = Math.cos(tama[3][k].ranow+rg*i) * tama[3][k].lenge;
-          yy = Math.sin(tama[3][k].ranow+rg*i) * tama[3][k].lenge;
+          //外側の弾幕の座標をセット
+          xx = Math.cos(tama[3][k].ra_now+rg*i) * tama[3][k].range;
+          yy = Math.sin(tama[3][k].ra_now+rg*i) * tama[3][k].range;
         }
         ctx.drawImage(tamaimg, tama[3][k].x+xx, tama[3][k].y+yy, 8, 8);
         //自機との当たり判定
