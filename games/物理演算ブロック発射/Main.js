@@ -88,9 +88,9 @@ wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
 //ブロックの種類を設定
-heavy=new BlockType(2,"#C83232","#800000",100);
-middle=new BlockType(1.6,"#32D232","#008000",50);
-light=new BlockType(1.2,"#78A0FF","#0075AD",25);
+heavy=new BlockType(2,"#C83232","#800000",500);
+middle=new BlockType(1.6,"#32D232","#008000",500);
+light=new BlockType(1.2,"#78A0FF","#0075AD",500);
 
 // 物理世界を更新
 const runner = Runner.create();
@@ -167,20 +167,26 @@ function draw() {
     Matter.Events.on(engine, "collisionStart", function(event) {
       let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-             if (pair.bodyA.collisionFilter.category == blockCategory) {
-              if(pair.bodyA.isStatic){
+             if (pair.bodyA.target) {
+              if(pair.bodyA.hp>0){
+                pair.bodyA.hp--;
+              }else{
                 Matter.Body.setStatic(pair.bodyA, false);
                 Body.setMass(pair.bodyA,pair.bodyA.massset)
-               }
+                pair.bodyA.collisionFilter.target=false;
+              }
              }
-             if (pair.bodyB.collisionFilter.category == blockCategory) {
-               if(pair.bodyB.isStatic){
+             if (pair.bodyB.target) {
+              if(pair.bodyB.hp>0){
+                pair.bodyB.hp--;
+              }else{
                 Matter.Body.setStatic(pair.bodyB, false);
-                 Body.setMass(pair.bodyB,pair.bodyA.massset)
-               }
-             }
+                 Body.setMass(pair.bodyB,pair.bodyB.massset)
+                 pair.bodyB.collisionFilter.target=false;
+              }
+                }
 
-//      console.log(pair); //これで何がぶつかっているかがわかる
+      console.log(pair); //これで何がぶつかっているかがわかる
     });
   });
   //物理演算範囲外の描写
@@ -215,6 +221,7 @@ class Wall {
   //　コンストラクタ宣言
   constructor(x, y, w, h, a, s, c){
     let optisons = {
+      target:false,
       restitution: 1,
       friction: 0,
       density: 1,
@@ -244,6 +251,7 @@ class Block {
   constructor(x, y, type,hen, r, a){
     this.type=type;
     let optisons = {
+      target:true,
       hp:type.hp,
       restitution: 1,
       friction: 0,
@@ -273,6 +281,7 @@ class Jiki {
   //　コンストラクタ宣言
   constructor(x, y){
     let optisons = {
+      target:false,
       restitution: 1,
       friction: 0,
       density: 1,
@@ -294,7 +303,8 @@ class Tama {
   //　コンストラクタ宣言
   constructor(x, y,ang,fce){
       let optisons = {
-          restitution: 0.8,
+        target:false,
+        restitution: 0.8,
           friction: 0,
           angle: ang,
           render: {
