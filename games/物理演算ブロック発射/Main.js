@@ -21,7 +21,7 @@ const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
 let substage = 0;
-let setstage = false
+let setstage = true;
 let score = 0;
 let jikix=50;
 let jikiy=550;
@@ -44,6 +44,7 @@ let extend = 0;
 let shield = false;
 let invincible = 0;
 let retflag = false;
+let collision_id = null;
 let tact = 0;
 var blocks = [];
 var tamas = [];
@@ -88,9 +89,9 @@ wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
 jiki = new Jiki(jikix,jikiy);
 
 //ブロックの種類を設定
-heavy=new BlockType(2,"#C83232","#800000",500);
-middle=new BlockType(1.6,"#32D232","#008000",500);
-light=new BlockType(1.2,"#78A0FF","#0075AD",500);
+heavy=new BlockType(2,"#C83232","#800000",50);
+middle=new BlockType(1.6,"#32D232","#008000",30);
+light=new BlockType(1.2,"#78A0FF","#0075AD",10);
 
 // 物理世界を更新
 const runner = Runner.create();
@@ -152,6 +153,7 @@ function draw() {
     }
   }
   for(i=0;i<blocks.length;){
+    blocks[i].body.timer--;
     if (blocks[i].isOffScreen()) {
       blocks[i].removeFromWorld();
       blocks.splice(i,1);
@@ -162,31 +164,41 @@ function draw() {
   console.log(blocks.length);
   if (blocks.length==0){
     setstage=false;
+    substage++;
   }
     //衝突判定
     Matter.Events.on(engine, "collisionStart", function(event) {
       let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-             if (pair.bodyA.target) {
-              if(pair.bodyA.hp>0){
-                pair.bodyA.hp--;
-              }else{
-                Matter.Body.setStatic(pair.bodyA, false);
+      if (collision_id != pair.id) {
+        collision_id = pair.id;
+
+      if (pair.bodyA.target) {
+//              if(pair.bodyA.timer<=0){
+                pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed;
+//                pair.bodyA.timer=10;
+                if(pair.bodyA.hp<=0){
+                  Matter.Body.setStatic(pair.bodyA, false);
                 Body.setMass(pair.bodyA,pair.bodyA.massset)
                 pair.bodyA.collisionFilter.target=false;
               }
-             }
+//             }
+            }
              if (pair.bodyB.target) {
-              if(pair.bodyB.hp>0){
-                pair.bodyB.hp--;
-              }else{
-                Matter.Body.setStatic(pair.bodyB, false);
+//              if(pair.bodyB.timer<=0){
+                pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed;
+//                pair.bodyB.timer=10;
+                if(pair.bodyB.hp<=0){
+                  Matter.Body.setStatic(pair.bodyB, false);
                  Body.setMass(pair.bodyB,pair.bodyB.massset)
                  pair.bodyB.collisionFilter.target=false;
               }
-                }
+//            }
+            }
 
-      console.log(pair); //これで何がぶつかっているかがわかる
+    console.log(pair); //これで何がぶつかっているかがわかる
+  }
+
     });
   });
   //物理演算範囲外の描写
@@ -200,6 +212,13 @@ function draw() {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
+  context.fillStyle = "black";
+  context.font = "48px serif";
+  context.fillText("STAGE", 850, 80);
+  context.fillText(String(stage)+"-"+(substage), 1020, 80);
+  context.font = "48px serif";
+  context.fillText("Score", 850, 360);
+  context.fillText(String(score), 980, 360);
 }
 //自機の弾発射処理
 function shot(renge) {
@@ -252,6 +271,7 @@ class Block {
     this.type=type;
     let optisons = {
       target:true,
+      timer:0,
       hp:type.hp,
       restitution: 1,
       friction: 0,
