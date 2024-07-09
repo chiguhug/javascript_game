@@ -24,7 +24,7 @@ let shotwait = 0;
 let bomb = 2;	//インベーダのミサイルを破壊する爆弾の数
 let bombwait = 50;
 let zanki = 3;
-let stopeffect = 0;
+// let stopeffect = 0;
 let newstage = true;
 let clear = true;
 let miss = false;
@@ -146,22 +146,22 @@ for (let i = 0; i <= 4; i++) {
   }
 }
 
-//敵の三方向ミサイルのインスタンス生成
+//インベーダーの3Wayミサイルのインスタンス生成
 for (let j = 0; j <= 30; j++) {
   tama[0][j] = new BombA(false, "res/tama1a_16x12.png", "res/tama1b_16x12.png", "res/tama1c_16x12.png");
 }
 
-//敵の誘導弾ミサイルのインスタンス生成
+//インベーダーの誘導弾ミサイルのインスタンス生成
 for (let j = 0; j <= 5; j++) {
   tama[1][j] = new BombB(false, "res/tamat_16x12.png");
 }
 
-//敵のレーザービームのインスタンス生成
+//インベーダーのレーザービームのインスタンス生成
 for (let j = 0; j <= 3; j++) {
   tama[2][j] = new BombC(false, "res/tamaL4_32x24.png", "res/tamaL5_32x24.png");
 }
 
-//敵の弾幕ミサイルのインスタンス生成
+//インベーダーの弾幕ミサイルのインスタンス生成
 for (let j = 0; j <= 4; j++) {
   tama[3][j] = new BombD(false, "res/tamah_16x12.png");
 }
@@ -282,10 +282,10 @@ function shotmove() {
     						jtama[h].alive = false;	//ミサイルを消す
     						shot--;		//ミサイルの数を1つ減らす
     						tcount--;	//敵のカウント数を1つ減らす
-    						dropchance(i,j);	//ドロップアイテムの抽選
+    						dropchance(i, j);	//ドロップアイテムの抽選
     						if (tcount == 0){	//敵の数がゼロになったとき
       						clear = true;		//クリア状態にセット
-      						stopeffect = 0;	//ストップ効果をクリア
+      						// stopeffect = 0;	//ストップ効果をクリア
     						}
   						}
 						}
@@ -305,8 +305,8 @@ function nextstage() {
   clear = false;	//クリア状態を戻す
 
 	//敵をすべて復活させる
-  for (i = 0; i <= 4; i++) {
-    for (j = 0; j <= 9; j++) {
+  for (i = 0; i < teki.length; i++) {
+    for (j = 0; j < teki[i].length; j++) {
       teki[i][j].alive = true;
     }
   }
@@ -338,19 +338,6 @@ function nextstage() {
 }
 //インベーダのミサイルをすべて無効にする
 function tamareset() {
-	// for (j = 0; j <= 30; j++) {
-	// 	tama[0][j].alive = false;
-	// }
-	// for (j = 0; j <= 5; j++) {
-	// 	tama[1][j].alive = false;
-	// }
-	// for (j = 0; j <= 3; j++) {
-	// 	tama[2][j].alive = false;
-	// }
-	// for (j = 0; j <= 4; j++) {
-	// 	tama[3][j].alive = false;
-	// }
-
 	for (let i = 0; i < tama.length; i++) {
 		for (let j = 0; j < tama[i].length; j++) {
 			tama[i][j].alive = false;
@@ -360,146 +347,148 @@ function tamareset() {
 }
 //敵描写
 function tdrow() {
-  for (i = 0; i <= 4; i++) {
-    for (j = 0; j <= 9; j++) {
-      if (teki[i][j].alive) {
-        tekiimg = new Image();
+  for (let i = 0; i < teki.length; i++) {
+    for (let j = 0; j < teki[i].length; j++) {
+      if (teki[i][j].alive) { //インベーダーが生存しているとき
+        //インベーダーの描画
+        let tekiimg = new Image();
         tekiimg.src = teki[i][j].image;
-        ctx.drawImage(tekiimg, teki[i][j].x+tx, teki[i][j].y,32,24);
-        if (!miss) {
-        	if (teki[i][j].x+tx>800-32){
-          	tmove=-2;
-        	}else if (teki[i][j].x+tx<0){
-          	tmove=2;
+        ctx.drawImage(tekiimg, teki[i][j].x+tx, teki[i][j].y, 32, 24);
+        if (!miss) {  //自機が被弾状態でないとき
+        	if (teki[i][j].x+tx > 800-32){  //インベーダーが右端に到達したとき
+          	tmove=-2; //左方向への移動にセット
+        	}else if (teki[i][j].x+tx < 0){ //インベーダーが左端に到達したとき
+          	tmove=2; //右方向への移動にセット
         	}
-          shotchance(i,j);
+          shotchance(i, j); //インベーダーの攻撃の抽選
       	}
 			}
 		}
 	}
-  if (!miss) {
-    tact = tact + 1;
-  	if (tact >= tcount) {
-    	tx = tx + tmove;
-    	tact=0;
+  if (!miss) {  //自機が被弾状態でないとき
+    //インベーダーの数に応じて移動速度を変える
+    tact = tact + 1;  //カウントアップ
+  	if (tact >= tcount) { //カウンタが生存しているインベーダーの数を超えたとき
+    	tx = tx + tmove;  //  //インベーダーのx座標の更新
+    	tact = 0; //カウンタをクリア
   	}
 	}
 }
 //ドロップアイテム抽選
-function dropchance(_i,_j){
-  i=_i;
-  j=_j;
-  xx=Math.random()*100;
-  if(xx<40) {
-    for(k=0;k<=4;k++){
-      if(!item[k].alive){
-        item[k].alive=true;
-        item[k].x=teki[i][j].x+12+tx;
-        item[k].y=teki[i][j].y+16;
-        if(xx<1){
-          item[k].type=5;
-        } else if(xx<5){
-          item[k].type=4;
-        } else if(xx<10){
-          item[k].type=3;
-        } else if(xx<20){
-          item[k].type=2;
-        } else if(xx<40){
-          item[k].type=1;
+function dropchance(_i, _j){
+  let ratio = Math.random()*100;  //アイテムの抽選
+  if (ratio < 40) { //抽選結果が40より小さいとき（40%の確率でアイテムを落とす）
+    for (let i = 0; i < item.length; i++) {
+      if (!item[i].alive) { //アイテムが有効でないとき
+        item[i].alive = true; //アイテムを有効とする
+        item[i].x = teki[_i][_j].x + 12 + tx; //アイテムを落とすインベーダーのx座標をセット
+        item[i].y = teki[_i][_j].y + 16; //アイテムを落とすインベーダーのy座標をセット
+        if (ratio < 1) {  //抽選結果が1より小さいとき
+          item[i].type = 5; //1機アップアイテムをセット
+        } else if (ratio < 5) {  //抽選結果が5より小さいとき
+          item[i].type = 4; //シールドアイテムをセット
+        } else if (ratio < 10) {  //抽選結果が10より小さいとき
+          item[i].type = 3; //ボムアイテムをセット
+        } else if (ratio < 20) {  //抽選結果が20より小さいとき
+          item[i].type = 2; //パワーアップアイテムをセット
+        } else {  //抽選結果が上記以外のとき
+          item[i].type = 1; //スコアアップアイテムをセット
         }
         break;
+      }
+    }
   }
-  }
-}
 }
 //敵が弾を撃つかどうかの抽選
-function shotchance(_i,_j){
-  i=_i;
-  j=_j;
-  let beemnow=false;
-  switch (i){
-     case 4:
+function shotchance(_i, _j){
+  // let i = _i;
+  // let j = _j;
+  // let beemnow = false;
+  let ratio;
+  switch (_i) {
+    //上から5段目と4段目のインベーダーのとき
+    case 4:
     case 3:
-      xx=Math.random()*120000;
-      if(xx<stage*10+500-tcount*10) {
-        for(k=0;k<=30;k++){
-          if(!tama[0][k].alive){
-            tama[0][k].alive=true;
-            tama[0][k].x=teki[i][j].x+12+tx;
-            tama[0][k].y=teki[i][j].y+16;
-            tama[0][k].l=0;
-            break;
-        }
-      }
-    }
-    break;
-    case 2:
-      xx=Math.random()*800000;
-      if(xx<stage*10+500-tcount*10) {
-        for(k=0;k<=5;k++){
-          if(!tama[1][k].alive){
-            tama[1][k].alive=true;
-            tama[1][k].x=teki[i][j].x+12+tx;
-            tama[1][k].y=teki[i][j].y+16;
-            break;
-        }
-      }
-    }
-    break;
-    case 1:
-      xx=Math.random()*200000;
-      if(xx<stage*10+500-tcount*10) {
-        for(k=0;k<=3;k++){
-          beemnow=false;
-          if(!tama[2][k].alive){
-            for (l=0;l<=3;l++){
-              if(tama[2][l].alive==true&&tama[2][l].x==j)
-                beemnow=true;
-            }
-            if (!beemnow){
-            tama[2][k].alive=true;
-            tama[2][k].x=j;
-            tama[2][k].chage=0;
-            tama[2][k].limit=0;
+      ratio = Math.random()*120000; //抽選
+      if(ratio < stage*10 + 500 - tcount*10) {  //ステージ数と生き残っているインベーダーの数で抽選
+        for(let k = 0; k < tama[0].length; k++) {  //全3Wayミサイルを走査
+          if(!tama[0][k].alive){  //ミサイルが未発射のとき
+            tama[0][k].alive = true;  //ミサイルを発射状態にセット
+            tama[0][k].x = teki[_i][_j].x + 12 + tx;  //ミサイルのx座標を対象となるインベーダーのx座標にセット
+            tama[0][k].y = teki[_i][_j].y + 16;  //ミサイルのy座標を対象となるインベーダーのy座標にセット
+            tama[0][k].l = 0; //左右方向の移動量を0にセット
             break;
           }
         }
       }
-    }
-    break;
-    case 0:
-        let xlenge=0;
-        let ylenge=0;
-        let angle=0;
-      xx=Math.random()*8000000;
-      if(xx<stage*10+5000-tcount*100) {
-        for(k=0;k<=4;k++){
-          if(!tama[3][k].alive){
-            tama[3][k].alive=true;
-            tama[3][k].x=teki[i][j].x+12+tx;
-            tama[3][k].y=teki[i][j].y+16;
-            tama[3][k].ra=Math.random()*0.02-0.04;
-            tama[3][k].ranow=0;
-            tama[3][k].lengemv=Math.random()*0.2-0.4;
-            tama[3][k].lenge=20;
-            xlenge=x+20-tama[3][k].x;
-            ylenge=470-tama[3][k].y;
-            angle = Math.atan2(ylenge, xlenge);
-            tama[3][k].mx=Math.cos(angle)*1;
-            tama[3][k].my=Math.sin(angle)*1;
+      break;
+    //上から3段目のインベーダーのとき
+    case 2:
+      ratio = Math.random()*800000; //抽選
+      if (ratio < stage*10 + 500 - tcount*10) {  //ステージ数と生き残っているインベーダーの数で抽選
+        for (let k = 0; k < tama[1].length; k++) {
+          if (!tama[1][k].alive) {  //ミサイルが未発射のとき
+            tama[1][k].alive = true;  //ミサイルを発射状態にセット
+            tama[1][k].x = teki[_i][_j].x + 12 + tx;  //ミサイルのx座標を対象となるインベーダーのx座標にセット
+            tama[1][k].y = teki[_i][_j].y + 16;  //ミサイルのy座標を対象となるインベーダーのy座標にセット
             break;
+         }
         }
       }
-    }
-    break;
-   }
-}
-function itemmove(){
-  for(k=0;k<4;k++){
-    if(item[k].alive){
-      if(!miss&&!clear){
-      item[k].y++;
+      break;
+    //上から2段目のインベーダーのとき
+    case 1:
+      ratio = Math.random()*200000; //抽選
+      if(ratio < stage*10 + 500 - tcount*10) {  //ステージ数と生き残っているインベーダーの数で抽選
+        for(k = 0; k < tama[2].length; k++) {
+          let beemnow = false; //ビーム発射中でない状態をセット
+          if (!tama[2][k].alive) {  //ミサイルが未発射のとき
+            tama[2][k].alive = true;  //ビーム発射状態にセット
+            tama[2][k].x = _j;  //ビームを発射するx座標をセット
+            tama[2][k].chage = 0; //チャージ中をクリア
+            tama[2][k].limit = 0; //リミットをクリア
+            break;
+          }
+        }
       }
+      break;
+    //最上段のインベーダーのとき
+    case 0:
+      let xlenge = 0;
+      let ylenge = 0;
+      let angle = 0;
+      ratio = Math.random()*8000000; //抽選
+      if(ratio < stage*10 + 5000 - tcount*100) {  //ステージ数と生き残っているインベーダーの数で抽選
+        for(let k = 0; k < tama[3].length; k++) {
+          if (!tama[3][k].alive) {  //ミサイルが未発射のとき
+            tama[3][k].alive = true; //ミサイル発射状態にセット
+            tama[3][k].x = teki[_i][_j].x + 12 + tx;  //ミサイルのx座標を対象となるインベーダーのx座標にセット
+            tama[3][k].y = teki[_i][_j].y + 16;  //ミサイルのy座標を対象となるインベーダーのy座標にセット
+            tama[3][k].ra = Math.random()*0.02-0.04;
+            tama[3][k].ranow = 0;
+            tama[3][k].lengemv = Math.random()*0.2-0.4;
+            tama[3][k].lenge = 20;
+            xlenge = x + 20-tama[3][k].x;
+            ylenge = 470 - tama[3][k].y;
+            angle = Math.atan2(ylenge, xlenge);
+            tama[3][k].mx = Math.cos(angle)*1;
+            tama[3][k].my = Math.sin(angle)*1;
+            break;
+          }
+        }
+      }
+      break;
+  }
+}
+
+//アイテム落下処理
+function itemmove(){
+  for (k = 0; k < item.length; k++) {
+    if (item[k].alive) {  //アイテム有効のとき
+      if (!miss && !clear) {  //自機が被弾状態でない、かつ、クリア状態でない
+       item[k].y++; //アイテムのy座標を更新
+      }
+      //アイテム画像の描画
       itemimga = new Image();
       itemimgb = new Image();
       itemimgc = new Image();
@@ -512,73 +501,77 @@ function itemmove(){
       itemimge.src = "res/item_ex.png";
       switch (item[k].type){
         case 1:
-        ctx.drawImage(itemimga, item[k].x, item[k].y, 40, 40);
-        break;
+          ctx.drawImage(itemimga, item[k].x, item[k].y, 40, 40);
+          break;
         case 2:
-        ctx.drawImage(itemimgb, item[k].x, item[k].y, 40, 40);
-        break;
+          ctx.drawImage(itemimgb, item[k].x, item[k].y, 40, 40);
+          break;
         case 3:
-        ctx.drawImage(itemimgc, item[k].x, item[k].y, 40, 40);
-        break;
+          ctx.drawImage(itemimgc, item[k].x, item[k].y, 40, 40);
+          break;
         case 4:
-        ctx.drawImage(itemimgd, item[k].x, item[k].y, 40, 40);
-        break;
+          ctx.drawImage(itemimgd, item[k].x, item[k].y, 40, 40);
+          break;
         case 5:
-        ctx.drawImage(itemimge, item[k].x, item[k].y, 40, 40);
-        break;
+          ctx.drawImage(itemimge, item[k].x, item[k].y, 40, 40);
+          break;
       }
-        if(item[k].y>=400&&item[k].y<=499){
-        if(item[k].x>=x-14&&item[k].x<=x+40){
-          if (item[k].type==1){
-            score=score+500;
-          }else if (item[k].type==2){
-            if (power<5){
-            power++;
-          }else{
-            score=score+500;
-          }
-          }else if (item[k].type==3){
-            if (bomb<3){
-              bomb++;
-            }else{
-              score=score+500;
+      //アイテムがゲットされたときの処理
+      if (item[k].y >= 400 && item[k].y <= 499) { //アイテムのy座標が400px～499pxのとき
+        if (item[k].x >= x-14 && item[k].x <= x+40) { //アイテムのx座標が自機のx座標と重なったとき
+          if (item[k].type == 1) {  //ゲットしたアイテムがスコアアップアイテムのとき
+            score = score + 500;  //スコアに500点追加
+          } else if (item[k].type == 2) {  //ゲットしたアイテムがパワーアップアイテムのとき
+            if (power < 5){ //アイテム数が5個より小さいとき
+              power++;  //アイテム数を増やす
+            }else{  //アイテム数が5つ以上のとき
+              score = score + 500; //スコアに500点追加
             }
-            }else if (item[k].type==4){
-              if (!shield){
-                shield=true;
-              }else{
-              score=score+500;
-              }
-          }else if (item[k].type==5){
-            zanki++;
+          } else if (item[k].type == 3) {  //ゲットしたアイテムがボムアイテムのとき
+            if (bomb < 3) { //アイテム数が3個より小さいとき
+              bomb++; //アイテム数を増やす
+            }else{  //アイテム数が3つ以上のとき
+              score = score + 500; //スコアに500点追加
+            }
+          } else if (item[k].type == 4) {  //ゲットしたアイテムがシールドアイテムのとき
+            if (!shield) {  //シールド中でないとき
+              shield = true;  //シールド状態にセット
+            } else {  //シールド中のとき
+              score = score + 500; //スコアに500点追加
+            }
+          }else if (item[k].type == 5) {  //ゲットしたアイテムが1機アップアイテムのとき
+            zanki++; //残機数を増やす
           }
-          item[k].alive=false;
+          item[k].alive = false;  //アイテムを無効にする
         }
       }
-      if(item[k].y>500){
-        item[k].alive=false;
-        }
+      //アイテムが流れた時の処理
+      if (item[k].y > 500) {  //アイテムのy座標が500pxを超えたとき
+        item[k].alive = false;  //アイテムを無効にする
+      }
     }
   }
 }
+
 //被弾処理
 function hit(){
-  if(!miss&&!shield&&invincible<=0){
-    miss=true;
-    stopeffect=0;
-}else if(shield)
-  shield=false;
-  invincible=300;
+  if (!miss && !shield && invincible <= 0) {  //被弾状態でない、かつ、シールド中でない、かつ、無敵状態でないとき
+    miss = true;  //被弾状態にセット
+  } else if (shield) {  //シールド中のとき
+    shield = false; //シールド状態解除
+  }
+  invincible = 300; //無敵期間をセット
 }
-//3Way弾
-function tamamovea(){
-  for(k=0;k<30;k++){
 
-    if(tama[0][k].alive){
-      if(!miss&&!clear){
-      tama[0][k].y=tama[0][k].y+1;
-      tama[0][k].l=tama[0][k].l+0.3;
+//3Way弾の移動と描画
+function tamamovea(){
+  for (k = 0; k < tama[0].length; k++) {
+    if (tama[0][k].alive) { //3Way弾が有効なとき
+      if(!miss && !clear){  //自機が被弾状態でない、かつクリア状態でないとき
+        tama[0][k].y = tama[0][k].y+1;  //3Way弾のy座標を1px増やす
+        tama[0][k].l = tama[0][k].l+0.3;  //3Way弾の左右ミサイルのx座標を0.3増やす
       }
+      //3Way弾の描画
       tamaimga = new Image();
       tamaimgb = new Image(); 
       tamaimgc = new Image(); 
@@ -588,20 +581,25 @@ function tamamovea(){
       ctx.drawImage(tamaimga, tama[0][k].x, tama[0][k].y, 8, 12);
       ctx.drawImage(tamaimgb, tama[0][k].x-tama[0][k].l, tama[0][k].y, 8, 6);
       ctx.drawImage(tamaimgc, tama[0][k].x+tama[0][k].l, tama[0][k].y, 8, 6);
-        if(tama[0][k].y>=460&&tama[0][k].y<=474){
-        if(tama[0][k].x>=x+14&&tama[0][k].x<=x+20){
-          hit();
-        }else if(tama[0][k].x-tama[0][k].l>=x+18&&tama[0][k].x-tama[0][k].l<=x+24){
-          hit();
-        }else if(tama[0][k].x+tama[0][k].l>=x+18&&tama[0][k].x+tama[0][k].l<=x+24){
-          hit();
+
+      //3Way弾と自機の当たり判定
+      if(tama[0][k].y >= 460 && tama[0][k].y <= 474) {
+        if (tama[0][k].x >= x+14 && tama[0][k].x <= x+20) {
+          hit();  //被弾処理
+        } else if (tama[0][k].x-tama[0][k].l >= x+18 && tama[0][k].x-tama[0][k].l <= x+24) {
+          hit();  //被弾処理
+        } else if (tama[0][k].x+tama[0][k].l >= x+18 && tama[0][k].x+tama[0][k].l <= x+24) {
+          hit();  //被弾処理
         }
       }
-      if(tama[0][k].y>500){
-        tama[0][k].alive=false;
-        }
-    }}
+
+      //3Way弾が流れていったときの処理
+      if (tama[0][k].y > 500) {  //3Way弾のy座標が500pxを超えたとき
+        tama[0][k].alive = false; //3Way弾を無効にする
+      }
+    }
   }
+}
 
 //誘導弾
 function tamamoveb(){
@@ -709,55 +707,57 @@ function tamamoved(){
 
 //リスポーン処理
 function respone(){
-if(zanki >= 1){
-  zanki--;
-  bomb=2;
-  power=Math.ceil(power/2);  
-  x=0;
-shot=0;
-for (i = 0; i <= 6; i++) {
-  jtama[i].alive = false;
-}
-miss=false;
-i = 0;
-for (j = 0; j <= 30; j++) {
-  tama[i][j].alive = false;
-}
-i = 1;
-for (j = 0; j <= 5; j++) {
-  tama[i][j].alive = false;
-}
-i = 2;
-for (j = 0; j <= 3; j++) {
-  tama[i][j].alive = false;
-}
-i = 3;
-for (j = 0; j <= 4; j++) {
-  tama[i][j].alive = false;
-}
-for (j = 0; j <= 4; j++) {
-  item[j].alive = false;
-}
-}else if (!gameover){
-  gameover=true;
-  stopeffect=0;
-}else{
-  gameover=false;
-  stage =0;
-  zanki =3;
-  score=0;
-  extend = 0;
-  power=0;
-  nextstage();
-}
+  if (zanki >= 1) { //自機の残数が1以上のとき
+    zanki--;  //自機の残数を1つ減らす
+    bomb = 2; //ボムのアイテム数を2にセット
+    power = Math.ceil(power/2);   //パワーアップアイテムの数を半分に減らす
+    x = 0;  //x座標の初期化
+    shot = 0; //ショット数の初期化
+    //自機のミサイルの初期化
+    for (let i = 0; i < jtama.length; i++) {
+      jtama[i].alive = false;
+    }
+    miss=false; //被弾状態のクリア
+
+    //インベーダーの3Wayミサイルの初期化
+    for (let j = 0; j < tama[0]/length; j++) {
+      tama[0][j].alive = false;
+    }
+    //インベーダーの誘導弾ミサイルの初期化
+    for (let j = 0; j < tama[1].length; j++) {
+      tama[1][j].alive = false;
+    }
+    //インベーダーのレーザービームの初期化
+    for (let j = 0; j < tama[2].length; j++) {
+      tama[2][j].alive = false;
+    }
+    //インベーダーの弾幕ミサイルの初期化
+    for (j = 0; j < tama[3].length; j++) {
+      tama[3][j].alive = false;
+    }
+    //アイテムの初期化
+    for (j = 0; j < item.length; j++) {
+      item[j].alive = false;
+    }
+  } else if (!gameover) { //残機がなく、かつ、ゲームオーバーでないとき
+    gameover = true;  //ゲームオーバー状態にセット
+  } else {  //上記以外の状態でもう一度キーが押されたとき
+    gameover = false; //ゲームオーバー状態を初期化
+    stage = 0;  //ステージ数を初期化
+    zanki = 3;  //残機数を初期化
+    score = 0;  //スコアを初期化
+    extend = 0; //自機を増やすときの拡張数を初期化
+    power = 0;  //パワーアップアイテム数を初期化
+    nextstage();  //
+  }
 }
 //クリア表示
 function cleareffect() {
   clrimg = new Image();
   clrimg.src = "res/text_gameclear_e.png";
-  if (stage!=0){
-  ctx.drawImage(clrimg, 100,200, 500, 100);
-}
+  if (stage != 0) { //初期表示中でないとき
+    ctx.drawImage(clrimg, 100,200, 500, 100);
+  }
 }
 //ゲームオーバー表示
 function gameovereffect() {
@@ -768,7 +768,7 @@ function gameovereffect() {
 //ボムエフェクト
 function bombeffect() {
   ctx.beginPath();
-  ctx.arc(x+20, 450, 40*bombwait, 0,Math.PI*2, false);
+  ctx.arc(x+20, 450, 40*bombwait, 0, Math.PI*2, false);
   ctx.fillStyle = "rgba(100,200,255,0.5)";
   ctx.fill();
   ctx.closePath();
@@ -776,121 +776,110 @@ function bombeffect() {
 
 //メイン処理
 function game() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    tdrow();
-    draw();
-    itemmove();
-    tamamovea();
-    tamamoveb();
-    tamamovec();
-    tamamoved();
-    shotmove();
-    if (bombwait<20){
-      bombeffect();
-    }
-    if (clear) {
-      cleareffect();
-    }
-    if (gameover) {
-      gameovereffect();
-    }
-    if(!miss&&!clear){
-    if (keyl) {
-      x = x - 2;
-      if (x < 0) {
-        x = 0;
+  //キャンバスのクリア
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //インベーダー、自機、ミサイル等の描画
+  tdrow();
+  draw();
+  itemmove();
+  tamamovea();
+  tamamoveb();
+  tamamovec();
+  tamamoved();
+  shotmove();
+
+  //ボム爆発表示
+  if (bombwait<20){
+    bombeffect();
+  }
+
+  //クリア時の表示
+  if (clear) {
+    cleareffect();
+  }
+
+  //ゲームオーバー表示
+  if (gameover) {
+    gameovereffect();
+  }
+
+  //
+  if(!miss&&!clear){  //自機が被弾状態でない、かつ、クリア状態でないとき
+    if (keyl) { //左移動キー押下時
+      x = x - 2;  //x座標を2pxずつ減らす
+      if (x < 0) {  //左端に到達したとき
+        x = 0;  //x座標に常に0をセット
       }
     }
-    if (keyr) {
-      x = x + 2;
-      if (x > 760) {
-        x = 760;
+    if (keyr) { //右移動キー押下時
+      x = x + 2;  //x座標を2pxずつ増やす
+      if (x > 760) {  //右端に到達したとき
+        x = 760;  //x座標に常に760をセット
       }
     }
   }
-    stopeffect++;
-    shotwait++;
+  //各種カウンタのアップ、あたはダウン
+  shotwait++;
   bombwait++;
   invincible--;
 
-		debug();
-  }
+  //デバッグ用
+	debug();
+}
 //メイン処理を定期的に実行
 setInterval(game, 10);
 
 //キー入力
 function keyDownHandler(e) {
-  if (!miss&&!clear) {
-    if (e.key === 'ArrowRight') {
+  if (!miss && !clear) {  //自機が被弾状態でない、かつ、クリア状態でないとき
+    //右矢印キーまたはDキー押下
+    if (e.key === 'ArrowRight' || e.key === 'd') {
       keyr = true;
     }
-    if (e.key === 'd') {
-      keyr = true;
-    }
-    if (e.key === 'ArrowLeft') {
+    //左矢印キーまたはAキー押下
+    if (e.key === 'ArrowLeft' || e.key === 'a') {
       keyl = true;
     }
-    if (e.key === 'a') {
-      keyl = true;
-    }
-    if (e.key === ' ' && shot<1+power&&shotwait>20) {
-      for (i = 0; i <= 6; i++) {
-        if (!jtama[i].alive){
-          jtama[i].alive=true;
-          jtama[i].x=x + 20;
-          jtama[i].y=450;
-          shotwait=0;
-          shot++;
+    //スペースキー押下またはZキー押下、かつショットの数がパワーアップアイテム数以下、かつショット待ち中でないとき
+    if ((e.key === ' ' || e.key === 'z') && shot <= power && shotwait > 20) {
+      for (let i = 0; i < jtama.length; i++) {
+        if (!jtama[i].alive) {  //自機のミサイルが未発射のとき
+          jtama[i].alive = true;  //自機のミサイルを発射状態にセット
+          jtama[i].x = x + 20;  //自機の中心のx座標をセット
+          jtama[i].y = 450; //y座標をセット
+          shotwait = 0; //ショット待ちカウンタをクリア（カウントスタート）
+          shot++; //ショット数を1つ増やす
           break;
         }
       }      
     }
-    if (e.key === 'z' &&shot<1+power&&shotwait>20) {
-      for (i = 0; i <= 6; i++) {
-        if (!jtama[i].alive){
-          jtama[i].alive=true;
-          jtama[i].x=x + 20;
-          jtama[i].y=450;
-          shotwait=0;
-          shot++;
-          break;
-        }
-      }      
+    //Xキー押下またはBキー押下時、かつ、ボムのアイテム数が1以上、かつボム待ち中でないとき
+    if ((e.key === 'x' || e.key === 'b') && bomb >= 1 && bombwait > 250) {
+      bombwait = 0; //ボム待ちカウンタをクリア
+      bomb--; //ボムのアイテム数を1つ減らす
+      tamareset();  //敵のミサイルをすべて無効化
     }
-    if (e.key === 'x' && bomb>=1&&bombwait>250) {
-      bombwait=0;
-      bomb--;
-      tamareset();
-    }
-    if (e.key === 'b' && bomb>=1&&bombwait>250) {
-      bombwait=0;
-      bomb--;
-      tamareset();
-    }
-  } else if (stopeffect >= 50) {
-    if(miss){
-      respone();
-    }else if(clear){
-      nextstage();
-    }
+  }else{  //自機が被弾中、またはクリア状態
+    keyr = false; //右キー押下状態をクリア
+    keyl = false; //左キー押下状態をクリア
+  }
 
-  }else{
-    keyr = false;
-    keyl = false;
+  if (miss) { //自機が被弾したとき
+    respone();  //自機の復活処理
+  } else if (clear) { //クリアしたとき
+    nextstage();  //次のステージにセット
   }
 }
+
+//キー開放
 function keyUpHandler(e) {
-  if (e.key === 'ArrowRight') {
-    keyr = false;
+  //右矢印キーまたはDキー押下
+  if (e.key === 'ArrowRight' || e.key === 'd') {
+    keyr = false; //右キー押下状態をクリア
   }
-  if (e.key === 'd') {
-    keyr = false;
-  }
-  if (e.key === 'ArrowLeft') {
-    keyl = false;
-  }
-  if (e.key === 'a') {
-    keyl = false;
+  //左矢印キーまたはAキー押下
+  if (e.key === 'ArrowLeft' || e.key === 'a') {
+    keyl = false; //左キー押下状態をクリア
   }
 }
 function debug() {
