@@ -603,104 +603,112 @@ function tamamovea(){
 
 //誘導弾
 function tamamoveb(){
-  let xlenge=0;
-  let ylenge=0;
-  let angle=0;
-  for(k=0;k<5;k++){
-    if(tama[1][k].alive){
-      if(!miss&&!clear){
-        if(tama[1][k].y<400){
-        xlenge=x+20-tama[1][k].x;
-        ylenge=470-tama[1][k].y;
-        angle = Math.atan2(ylenge, xlenge);
-        tama[1][k].mx=Math.cos(angle)*2;
-        tama[1][k].my=Math.sin(angle)*2;
+  for (let k = 0; k < tama[1].length; k++) {
+    if (tama[1][k].alive) { //誘導弾が有効のとき
+      if (!miss && !clear) {  //自機が被弾状態でない、かつ、クリア状態でない
+        if (tama[1][k].y < 400) { //誘導弾のy座標が400pxより小さいとき
+          let x_range = x + 20 - tama[1][k].x;  //自機のx座標との距離を取得
+          let y_range = 470 - tama[1][k].y;  //自機のy座標との距離を取得
+          let angle = Math.atan2(y_range, x_range); //自機と誘導弾とのラジアン角の取得
+          tama[1][k].mx = Math.cos(angle)*2;  //自機に向かう角度でx座標の移動量をセット
+          tama[1][k].my = Math.sin(angle)*2;  //自機に向かう角度でy座標の移動量をセット
+        }
+        //誘導弾の移動
+        tama[1][k].y = tama[1][k].y + tama[1][k].my;
+        tama[1][k].x = tama[1][k].x + tama[1][k].mx;
       }
-      tama[1][k].y=tama[1][k].y+tama[1][k].my;
-      tama[1][k].x=tama[1][k].x+tama[1][k].mx;
-      }
+      //誘導弾の描画
       tamaimg = new Image();
       tamaimg.src = tama[1][k].image;
       ctx.drawImage(tamaimg, tama[1][k].x, tama[1][k].y, 12, 12);
-        if(tama[1][k].y>=460&&tama[1][k].y<=474){
-        if(tama[1][k].x>=x+14&&tama[1][k].x<=x+20){
-          hit();
+      //誘導弾の当たり判定
+      if (tama[1][k].y >= 460 && tama[1][k].y <= 474) {
+        if (tama[1][k].x >= x+14 && tama[1][k].x <= x+20) {
+          hit();  //被弾処理
         }
       }
-      if(tama[1][k].y>500){
-        tama[1][k].alive=false;
-        }
-    }}
-}
-//ビーーーーーーーーーーーーーーーーーーーーム
-function tamamovec(){
-  let xx=0;
-  let yy=0;
-  let body=0;
-  for(k=0;k<3;k++){
-    if(tama[2][k].alive){
-      body=tama[2][k].x;
-      xx=teki[1][body].x+tx;
-      yy=teki[1][body].y;
-      if(!teki[1][body].alive){
-        tama[2][k].alive=false;
-      }
-        if(tama[2][k].chage<40){
-          if(!miss&&!clear){
-            tama[2][k].chage=tama[2][k].chage+0.05*stage;
-          }
-            tamaaimg = new Image();
-            tamaaimg.src = tama[2][k].imagea;
-            ctx.drawImage(tamaaimg, xx+16-tama[2][k].chage/2,yy+28-tama[2][k].chage/2, tama[2][k].chage,tama[2][k].chage);
-      }else if(tama[2][k].limit<120+stage*20){
-        if(!miss&&!clear){
-          tama[2][k].limit++;
-        }
-        tamabimg = new Image();
-        tamabimg.src = tama[2][k].imageb;
-        ctx.drawImage(tamabimg, xx,yy+28, 24,500);
-        if(xx>=x-4&&xx<=x+20){
-          hit();
-        }
-    }else{
-        tama[2][k].alive=false;
-      }
+      //誘導弾が流れていったときの処理
+      if (tama[1][k].y > 500) { //誘導弾のy座標が500pxを超えたとき
+        tama[1][k].alive = false; //誘導弾を無効にする
       }
     }
   }
-//スター
+}
+//ビーーーーーーーーーーーーーーーーーーーーム
+function tamamovec(){
+  let xx = 0;
+  let yy = 0;
+  let body = 0;
+  for (let k = 0; k < tama[2].length; k++) {
+    if (tama[2][k].alive) { //ビーム有効のとき
+      body = tama[2][k].x;  //ビームのx座標を取得
+      xx = teki[1][body].x + tx;  //ビームを発射するインベーダーのx座標をセット
+      yy = teki[1][body].y; //ビームを発射するインベーダーのy座標をセット
+      if (!teki[1][body].alive) { //インベーダーが倒されたとき
+        tama[2][k].alive = false; //ビームの発射を止める
+      }
+      if (tama[2][k].chage < 40) {  //ビームのチャージ中のとき
+        if (!miss && !clear) {  //自機が被弾状態でない、かつ、クリア状態でない
+          tama[2][k].chage = tama[2][k].chage + 0.05 * stage; //ステージ数に応じたチャージを行う
+        }
+        //チャージ量に応じて大きさを変えて描画
+        tamaaimg = new Image();
+        tamaaimg.src = tama[2][k].imagea;
+        ctx.drawImage(tamaaimg, xx+16-tama[2][k].chage/2, yy+28-tama[2][k].chage/2, tama[2][k].chage, tama[2][k].chage);
+      } else if (tama[2][k].limit < 120 + stage * 20) { //制限時間を超えていないとき
+        if (!miss && !clear) {  //自機が被弾状態でない、かつ、クリア状態でない
+          tama[2][k].limit++; //制限時間をカウントアップ
+        }
+        //ビームの描画
+        tamabimg = new Image();
+        tamabimg.src = tama[2][k].imageb;
+        ctx.drawImage(tamabimg, xx, yy+28, 24, 500);
+        if (xx >= x-4 && xx <= x + 20) {  //自機に当たったとき
+          hit();  //被弾処理
+        }
+      } else {
+        tama[2][k].alive = false; //ビームを無効にする
+      }
+    }
+  }
+}
+
+//スター弾幕
 function tamamoved(){
   let rg = Math.PI*0.2;
   let xx = 0;
   let yy = 0;
-  for(k=0;k<4;k++){
-    if(tama[3][k].alive){
-      if(!miss&&!clear){
-      tama[3][k].x=tama[3][k].x+tama[3][k].mx;
-      tama[3][k].y=tama[3][k].y+tama[3][k].my;
-      tama[3][k].ranow=tama[3][k].ranow+tama[3][k].ra;
-      tama[3][k].lenge=tama[3][k].lenge+tama[3][k].lengemv;
+  for (let k = 0; k < tama[3].length; k++) {
+    if (tama[3][k].alive) { //弾幕が有効のとき
+      if (!miss && !clear) { //自機が被弾状態でない、かつ、クリア状態でない
+        tama[3][k].x = tama[3][k].x + tama[3][k].mx;  //弾幕のx座標の更新（自機に向かう角度）
+        tama[3][k].y = tama[3][k].y + tama[3][k].my;  //弾幕のy座標の更新（自機に向かう角度）
+        tama[3][k].ranow = tama[3][k].ranow + tama[3][k].ra;  //-0.02～-0.04のいずれかの値で毎回更新（反時計回りにするための移動量）
+        tama[3][k].lenge = tama[3][k].lenge + tama[3][k].lengemv; //  //-0.2～-0.4のいずれかの値で更新
       }
+      //
       tamaimg = new Image();
       tamaimg.src = tama[3][k].image;
-      for (i=1;i<=10;i++){
-        if(i%2==1){
-          xx=Math.cos(tama[3][k].ranow+rg*i)*tama[3][k].lenge/2;
-          yy=Math.sin(tama[3][k].ranow+rg*i)*tama[3][k].lenge/2;
-          }else{
-            xx=Math.cos(tama[3][k].ranow+rg*i)*tama[3][k].lenge;
-            yy=Math.sin(tama[3][k].ranow+rg*i)*tama[3][k].lenge;
+      for (let i = 1; i <= 10; i++) {
+        if (i%2 == 1) { //奇数番号のとき
+          xx = Math.cos(tama[3][k].ranow+rg*i) * tama[3][k].lenge / 2;
+          yy = Math.sin(tama[3][k].ranow+rg*i) * tama[3][k].lenge / 2;
+        } else { //偶数番号のとき
+          xx = Math.cos(tama[3][k].ranow+rg*i) * tama[3][k].lenge;
+          yy = Math.sin(tama[3][k].ranow+rg*i) * tama[3][k].lenge;
         }
-
-      ctx.drawImage(tamaimg, tama[3][k].x+xx, tama[3][k].y+yy, 8, 8);
-        if(tama[3][k].y+yy>=460&&tama[3][k].y+yy<=474){
-        if(tama[3][k].x+xx>=x+14&&tama[3][k].x+xx<=x+20){
-          hit();
+        ctx.drawImage(tamaimg, tama[3][k].x+xx, tama[3][k].y+yy, 8, 8);
+        //自機との当たり判定
+        if (tama[3][k].y+yy >= 460 && tama[3][k].y + yy <= 474) {
+          if (tama[3][k].x + xx >= x + 14 && tama[3][k].x + xx <= x + 20) {
+            hit();  //被弾処理
+          }
+        }
       }
-    }}
-      if(tama[3][k].y>1000){
-        tama[3][k].alive=false;
-        }
+      //弾幕が流れていったときの処理
+      if (tama[3][k].y > 1000) { //誘導弾のy座標が1000pxを超えたとき
+        tama[3][k].alive = false; //弾幕を無効にする
+      }
     }
   }
 }
