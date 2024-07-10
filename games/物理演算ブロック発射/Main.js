@@ -108,6 +108,14 @@ world_canvas.addEventListener("click", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
   });
+  //物理演算範囲外の描写
+  context.beginPath();
+  context.rect(830, 0, 470,600 );
+  context.strokeStyle = "red";
+  context.stroke();
+  context.fillStyle = "red";
+  context.fill();
+  context.closePath();
 main();
 }
 //　Main関数
@@ -153,7 +161,7 @@ function draw() {
     }
   }
   for(i=0;i<blocks.length;){
-    blocks[i].body.timer--;
+//    blocks[i].body.timer--;
     if (blocks[i].isOffScreen()) {
       blocks[i].removeFromWorld();
       blocks.splice(i,1);
@@ -174,26 +182,24 @@ function draw() {
         collision_id = pair.id;
 
       if (pair.bodyA.target) {
-//              if(pair.bodyA.timer<=0){
-                pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed;
-//                pair.bodyA.timer=10;
+                pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+                if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
                 if(pair.bodyA.hp<=0){
                   Matter.Body.setStatic(pair.bodyA, false);
                 Body.setMass(pair.bodyA,pair.bodyA.massset)
-                pair.bodyA.collisionFilter.target=false;
+                pair.bodyA.target=false;
+                pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
               }
-//             }
             }
              if (pair.bodyB.target) {
-//              if(pair.bodyB.timer<=0){
-                pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed;
-//                pair.bodyB.timer=10;
-                if(pair.bodyB.hp<=0){
+              pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+              if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+              if(pair.bodyB.hp<=0){
                   Matter.Body.setStatic(pair.bodyB, false);
                  Body.setMass(pair.bodyB,pair.bodyB.massset)
-                 pair.bodyB.collisionFilter.target=false;
-              }
-//            }
+                 pair.bodyB.target=false;
+                 pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
+                }
             }
 
     console.log(pair); //これで何がぶつかっているかがわかる
@@ -202,16 +208,8 @@ function draw() {
     });
   });
   //物理演算範囲外の描写
-  context.beginPath();
-  context.rect(830, 0, 470,30 );
-  context.rect(1170, 0, 30, 600);
-  context.rect(830, 300, 470, 10);
-  context.rect(830, 570, 470, 30);
-  context.strokeStyle = "red";
-  context.stroke();
-  context.fillStyle = "red";
-  context.fill();
-  context.closePath();
+  context.clearRect(830, 30, 340, 270);
+  context.clearRect(830, 310, 340, 260);
   context.fillStyle = "black";
   context.font = "48px serif";
   context.fillText("STAGE", 850, 80);
@@ -271,7 +269,7 @@ class Block {
     this.type=type;
     let optisons = {
       target:true,
-      timer:0,
+      damegeRate:1,
       hp:type.hp,
       restitution: 1,
       friction: 0,
@@ -280,7 +278,7 @@ class Block {
       isStatic: true,
       render: {
         fillStyle: type.coller1,
-        fillStyle2: type.coller1
+        fillStyle2: type.coller2
       },
       collisionFilter: {
         category: blockCategory,
@@ -301,8 +299,10 @@ class Jiki {
   //　コンストラクタ宣言
   constructor(x, y){
     let optisons = {
-      target:false,
+      target:true,
+      jiki:true,
       restitution: 1,
+      hp:100,
       friction: 0,
       density: 1,
       angle: 0,
@@ -324,6 +324,7 @@ class Tama {
   constructor(x, y,ang,fce){
       let optisons = {
         target:false,
+        damegeRate:4,
         restitution: 0.8,
           friction: 0,
           angle: ang,
