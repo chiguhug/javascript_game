@@ -50,7 +50,7 @@ var blocks = [];
 var tamas = [];
 var atacks = [];
 jikiimg = new Image();
-jikiimg.src = "res/jiki_32x24.png";
+jikiimg.src = "./res/jiki.png";
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
@@ -220,7 +220,7 @@ function draw() {
 }
 //自機の弾発射処理
 function shot(renge) {
-tamas.push(new Tama(jikix,jikiy,jikiangle,renge/20000))
+tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000))
 }
 function setblock(stage) {
   switch(stage){
@@ -307,7 +307,10 @@ class Jiki {
       density: 1,
       angle: 0,
       render: {
-        fillStyle: "#2020ff"
+        fillStyle: "#2020ff",
+          sprite: {
+              texture: './res/jiki.png'
+          }
       },
       collisionFilter: {
         category: jikiCategory
@@ -327,6 +330,7 @@ class Tama {
         damegeRate:4,
         restitution: 0.8,
           friction: 0,
+          frictionAir: 0,
           angle: ang,
           render: {
             fillStyle: "#ffffff"
