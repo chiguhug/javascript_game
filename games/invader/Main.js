@@ -10,38 +10,52 @@ reproduced or used in any manner whatsoever.
 ======================================================================
 */
 
+/**********************************************
+  
+ グローバル変数宣言
+ 
+***********************************************/
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
-//初期設定
-let x = 0;	//自機のx座標
-let stage = 0;  //ステージ数
-let score = 0;  //スコア
-let keyr = false; //右移動キー押下状態クリア
-let keyl = false; //左移動キー押下状態クリア
-let shot = 0; //自機のミサイル数
-let power = 0;  //パワーアップアイテム数
-let shotwait = 0; //次のミサイル発射までの待ち時間
-let bomb = 2;	//ボムアイテム数
-let bombwait = 50;  //ボム効果用のカウンタ
-let zanki = 3;  //残機数
-let clear = true; //クリア状態（クリア時、一旦動作を止めている）
-let miss = false; //被弾状態（被弾時、一旦動作を止めている）
-let gameover = false; //ゲームオーバー状態クリア
-let extend = 0; //ボーナス得点（1機アップ）のカウンタ
-let shield = false; //シールド状態クリア
-let invincible = 0; //無敵状態
-let tx = 0; //インベーダーのx座標
-let tmove = 2;  //インベーダーの移動量
-let tcount = 50;  //インベーダーの生存数
-let tact = 0; //インベーダーを移動判定用カウンタ（インベーダーの数が減ってきたら移動速度を上げるため）
+var x = 0;	//自機のx座標
+var stage = 0;  //ステージ数
+var score = 0;  //スコア
+var keyr = false; //右移動キー押下状態クリア
+var keyl = false; //左移動キー押下状態クリア
+var shot = 0; //自機のミサイル数
+var power = 0;  //パワーアップアイテム数
+var shotwait = 0; //次のミサイル発射までの待ち時間
+var bomb = 2;	//ボムアイテム数
+var bombwait = 50;  //ボム効果用のカウンタ
+var zanki = 3;  //残機数
+var clear = true; //クリア状態（クリア時、一旦動作を止めている）
+var miss = false; //被弾状態（被弾時、一旦動作を止めている）
+var gameover = false; //ゲームオーバー状態クリア
+var extend = 0; //ボーナス得点（1機アップ）のカウンタ
+var shield = false; //シールド状態クリア
+var invincible = 0; //無敵状態
+var tx = 0; //インベーダーのx座標
+var tmove = 2;  //インベーダーの移動量
+var tcount = 50;  //インベーダーの生存数
+var tact = 0; //インベーダーを移動判定用カウンタ（インベーダーの数が減ってきたら移動速度を上げるため）
 var teki = [[], [], [], [], []];  //インベーダーの管理用配列
 var tama = [[], [], [], [], []];  //インベーダーのミサイルの管理用配列
 var jtama = [];  //自機のミサイルの管理用配列
 var item = [];  //アイテムの管理用配列
 
+/**********************************************
+  
+ イベントハンドラーの登録
+ 
+***********************************************/
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
+/****************************************************
+  
+ クラス宣言
+ 
+*****************************************************/
 //自弾クラス
 class Jtama {
   constructor(_alive, _x, _y, _image) {
@@ -51,6 +65,7 @@ class Jtama {
     this.alive = _alive;
   }
 }
+
 //アイテムクラス
 class Item {
   constructor(_alive, _x, _y, _type) {
@@ -60,6 +75,7 @@ class Item {
     this.type = _type;
   }
 }
+
 //敵クラス
 class Enemy {
   constructor(_alive, _x, _y, _image) {
@@ -69,7 +85,8 @@ class Enemy {
     this.alive = _alive;
   }
 }
-//敵弾クラス
+
+//３Way弾クラス
 class BombA {
   constructor(_alive, _image1, _image2, _image3) {
     this.image1 = _image1;
@@ -81,6 +98,8 @@ class BombA {
     this.l = 0;
   }
 }
+
+//誘導弾クラス
 class BombB {
   constructor(_alive, _image) {
     this.image = _image;
@@ -91,6 +110,8 @@ class BombB {
     this.my = 0;
   }
 }
+
+//ビームクラス
 class BombC {
   constructor(_alive, _image1, _image2) {
     this.imagea = _image1;
@@ -101,6 +122,8 @@ class BombC {
     this.limit = 0;
   }
 }
+
+//スター弾幕クラス
 class BombD {
   constructor(_alive, _image) {
     this.image = _image;
@@ -115,6 +138,12 @@ class BombD {
     this.range_mv = 0;
   }
 }
+
+/****************************************************
+  
+ アイテム、インベーダー、各ミサイルのインスタンス生成
+ 
+*****************************************************/
 //４アイテムのインスタンス生成
 for (let i = 0; i <= 4; i++) {
   item[i]=new Item(false, 0, 0, 0);
@@ -153,7 +182,7 @@ for (let j = 0; j <= 5; j++) {
   tama[1][j] = new BombB(false, "res/tamat_16x12.png");
 }
 
-//インベーダーのレーザービームのインスタンス生成
+//インベーダーのビームのインスタンス生成
 for (let j = 0; j <= 3; j++) {
   tama[2][j] = new BombC(false, "res/tamaL4_32x24.png", "res/tamaL5_32x24.png");
 }
@@ -167,9 +196,19 @@ for (let j = 0; j <= 4; j++) {
 for (let i = 0; i <= 6; i++) {
   jtama[i] = new Jtama(false, 0, 0, "res/tamaji_16x12.png");
 }
-//メイン処理を定期的に実行
+
+/****************************************************
+  
+ コールバック設定
+ 
+*****************************************************/
 setInterval(game, 10);
 
+/****************************************************
+  
+ 関数宣言
+ 
+*****************************************************/
 //自機表示・枠表示
 function draw() {
   //自機の表示
@@ -792,15 +831,18 @@ function bombeffect() {
 function game() {
   //キャンバスのクリア
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //インベーダー、自機、ミサイル等の描画
-  tdrow();
+
+  //自機関連の制御関数の呼び出し
   draw();
+  shotmove();
+
+  //インベーダー関連の制御関数の呼び出し
+  tdrow();
   itemmove();
   tamamovea();
   tamamoveb();
   tamamovec();
   tamamoved();
-  shotmove();
 
   //ボム爆発表示
   if (bombwait<20){
@@ -817,7 +859,7 @@ function game() {
     gameovereffect();
   }
 
-  //
+  //自機の移動
   if(!miss&&!clear){  //自機が被弾状態でない、かつ、クリア状態でないとき
     if (keyl) { //左移動キー押下時
       x = x - 2;  //x座標を2pxずつ減らす
@@ -832,7 +874,8 @@ function game() {
       }
     }
   }
-  //各種カウンタのアップ、あたはダウン
+
+  //各種カウンタのカウント
   shotwait++;
   bombwait++;
   invincible--;
