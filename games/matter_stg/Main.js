@@ -14,17 +14,18 @@ const Body       = Matter.Body;
 
 //初期変数設定
 const commonCategory = 0x0001, // 全オブジェクト共通のカテゴリ
-  jikiCategory = 0x0002, // 自機オブジェクトのカテゴリ
-  blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテゴリ
-  bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
+jikiCategory = 0x0002, // 自機オブジェクトのカテゴリ
+blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテゴリ
+bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
 let substage = 0;
 let setstage = true;
 let score = 0;
-let jikix=50;
+let jikix=400;
 let jikiy=550;
+let jikihp=100;
 let mousex=0;
 let mousey=0;
 let jikiangle=0;
@@ -39,18 +40,17 @@ let zanki = 3;
 let respawnwait = 0;
 let clear = true;
 let miss = false;
+let misstimer = 0;
 let gameover = false;
 let extend = 0;
 let shield = false;
-let invincible = 0;
+let invincible = 120;
 let retflag = false;
 let collision_id = null;
 let tact = 0;
 var blocks = [];
 var tamas = [];
 var atacks = [];
-jikiimg = new Image();
-jikiimg.src = "./res/jiki.png";
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
@@ -63,47 +63,57 @@ const init = () => {
   wcontext = world_canvas.getContext("2d");
   width = canvas.width;   //キャンバスの幅をセット
   height = canvas.height; //キャンバスの高さをセット
-
-// 物理エンジン本体のクラス
-engine = Engine.create();
-  world = engine.world;
-
-// 画面を描画するクラス
-render = Render.create({
-  canvas: world_canvas,
-  engine: engine,
-  options: {
-    width: WIDTH,   //横幅は制限する
-    height: height, //キャンバスの高さに合わせる
-    showIds: true,  //ID番号の表示を許可
-    wireframes: false,
-  }
-});
-
-Render.run(render);
-
-  //　外枠を作成
-wall_left = new Wall(15, 300, 30, 600, 0, true, "red");
-wall_right = new Wall(815, 300, 30, 600, 0, true, "red");
-wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
-jiki = new Jiki(jikix,jikiy);
-
-//ブロックの種類を設定
-heavy=new BlockType(2,"#C83232","#800000",50);
-middle=new BlockType(1.6,"#32D232","#008000",30);
-light=new BlockType(1.2,"#78A0FF","#0075AD",10);
-
-// 物理世界を更新
-const runner = Runner.create();
-Runner.run(runner, engine);
   
-world_canvas.addEventListener("click", event => {
-//  console.log(event.offsetX, event.offsetY);
-//  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
-  shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)))
-});
-
-// マウスカーソルの位置の取得
+  // 物理エンジン本体のクラス
+  engine = Engine.create();
+  world = engine.world;
+  
+  // 画面を描画するクラス
+  render = Render.create({
+    canvas: world_canvas,
+    engine: engine,
+    options: {
+      width: WIDTH,   //横幅は制限する
+      height: height, //キャンバスの高さに合わせる
+      showIds: true,  //ID番号の表示を許可
+      wireframes: false,
+    }
+  });
+  
+  Render.run(render);
+  
+  //　外枠を作成
+  wall_left = new Wall(15, 300, 30, 600, 0, true, "red");
+  wall_right = new Wall(815, 300, 30, 600, 0, true, "red");
+  wall_top = new Wall(415, 15, 770, 30, 0, true, "red");
+  jiki = new Jiki(jikix,jikiy);
+  
+  //ブロックの種類を設定
+  heavy=new BlockType(2,"#C83232","#800000",50);
+  middle=new BlockType(1.6,"#32D232","#008000",30);
+  light=new BlockType(1.2,"#78A0FF","#0075AD",10);
+  
+  // 物理世界を更新
+  const runner = Runner.create();
+  Runner.run(runner, engine);
+  
+  world_canvas.addEventListener("click", event => {
+    //  console.log(event.offsetX, event.offsetY);
+    //  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+    if(shotwait<=0&&!miss){
+      shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+      shotwait=10;
+    }else if(miss&&misstimer==0){
+      jikix=400;
+      jikiy=550;
+      jiki = new Jiki(jikix,jikiy);
+      miss=false;
+      jikihp=100;
+      invincible=120;
+    }
+  });
+  
+  // マウスカーソルの位置の取得
   world_canvas.addEventListener("mousemove", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
@@ -116,21 +126,28 @@ world_canvas.addEventListener("click", event => {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
-main();
+  main();
 }
 //　Main関数
 
 function main() {
+  shotwait--;
+  if(invincible>0){
+    invincible--;
+    if(invincible==0){
+      jiki.body.render.sprite.texture=jiki.body.render.sprite.nomal;
+    }
+  }
   move();
   draw();
   window.requestAnimationFrame(main);
 }
 function move() {
   //キー入力状況に応じた自機の上下左右移動
-  if (keyr)jikix=jikix+3;
-  if (keyl)jikix=jikix-3;
-  if (keyd)jikiy=jikiy+3;
-  if (keyu)jikiy=jikiy-3;
+  if (keyr&&!miss)jikix=jikix+3;
+  if (keyl&&!miss)jikix=jikix-3;
+  if (keyd&&!miss)jikiy=jikiy+3;
+  if (keyu&&!miss)jikiy=jikiy-3;
   if (jikix<44)jikix=44;
   if (jikix>786)jikix=786;
   if (jikiy>586)jikiy=586;
@@ -144,9 +161,9 @@ function move() {
 //　描画関数
 function draw() {
   if(!setstage){
-  setblock(1);
-  setstage=true;
-}
+    setblock(1);
+    setstage=true;
+  }
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
     tamas[i].timer--
@@ -161,7 +178,6 @@ function draw() {
     }
   }
   for(i=0;i<blocks.length;){
-//    blocks[i].body.timer--;
     if (blocks[i].isOffScreen()) {
       blocks[i].removeFromWorld();
       blocks.splice(i,1);
@@ -169,42 +185,70 @@ function draw() {
       i++;
     }
   }
-  console.log(blocks.length);
+  // console.log(blocks.length);
   if (blocks.length==0){
     setstage=false;
     substage++;
   }
-    //衝突判定
-    Matter.Events.on(engine, "collisionStart", function(event) {
-      let pairs = event.pairs;
+  //ミスタイマーとミスした自機削除処理
+  if(miss&&misstimer>0){
+    misstimer--;
+    if(misstimer==0){
+      jiki.removeFromWorld();
+    }
+  }
+  //衝突判定
+  Matter.Events.on(engine, "collisionStart", function(event) {
+    let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
       if (collision_id != pair.id) {
         collision_id = pair.id;
-
-      if (pair.bodyA.target) {
-                pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
-                if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
-                if(pair.bodyA.hp<=0){
-                  Matter.Body.setStatic(pair.bodyA, false);
-                Body.setMass(pair.bodyA,pair.bodyA.massset)
-                pair.bodyA.target=false;
-                pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
-              }
+        
+        if (pair.bodyA.target) {
+          if(pair.bodyA.jiki&&shield)invincible=180;
+          if(!pair.bodyA.jiki||!invincible>0){
+          pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+          if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+          if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
+          if(pair.bodyA.hp<=0){
+            if(pair.bodyA.jiki){
+              miss=true;
+              pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
+              misstimer=120;
+            }else{
+              Matter.Body.setStatic(pair.bodyA, false);
+              Body.setMass(pair.bodyA,pair.bodyA.massset)
+              pair.bodyA.target=false;
+              pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
             }
-             if (pair.bodyB.target) {
-              pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
-              if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
-              if(pair.bodyB.hp<=0){
-                  Matter.Body.setStatic(pair.bodyB, false);
-                 Body.setMass(pair.bodyB,pair.bodyB.massset)
-                 pair.bodyB.target=false;
-                 pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
-                }
+          }
+         }
+
+        }
+        if (pair.bodyB.target) {
+          if(pair.bodyA.jiki&&shield)invincible=180;
+          if(!pair.bodyA.jiki||!invincible>0){
+          pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+          if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+          if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
+          if(pair.bodyB.hp<=0){
+            if(pair.bodyA.jiki){
+              miss=true;
+              pair.bodyB.render.sprite.texture=pair.bodyB.render.sprite.miss;
+              misstimer=120;
+            }else{
+              Matter.Body.setStatic(pair.bodyB, false);
+              Body.setMass(pair.bodyB,pair.bodyB.massset)
+              pair.bodyB.target=false;
+              pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
             }
-
-    console.log(pair); //これで何がぶつかっているかがわかる
-  }
-
+          }
+          }
+        }
+        
+        // console.log(pair); //これで何がぶつかっているかがわかる
+      }
+      
     });
   });
   //物理演算範囲外の描写
@@ -216,23 +260,40 @@ function draw() {
   context.fillText(String(stage)+"-"+(substage), 1020, 80);
   context.font = "48px serif";
   context.fillText("Score", 850, 360);
-  context.fillText(String(score), 980, 360);
+  context.fillText(String(Math.floor(score)), 980, 360);
+  context.beginPath();
+  context.rect(850, 420, 300,40 );
+  context.strokeStyle = "red";
+  context.stroke();
+  context.fillStyle = "red";
+  context.fill();
+  context.closePath();
+  if(jikihp>=0){
+    context.beginPath();
+    context.rect(850, 420, jikihp*3,40 );
+    context.strokeStyle = "green";
+    context.stroke();
+    context.fillStyle = "green";
+    context.fill();
+    context.closePath();
+  }
+  
 }
 //自機の弾発射処理
 function shot(renge) {
-tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000))
+  tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000))
 }
 function setblock(stage) {
   switch(stage){
-  case 1:
-  for(i=1;i<=3;i++){
-    for(y=0;y<5;y++){
-      if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-      if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-      if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+    case 1:
+    for(i=1;i<=3;i++){
+      for(y=0;y<5;y++){
+        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+      }
     }
   }
-}
 }
 class Wall {
   //　コンストラクタ宣言
@@ -269,6 +330,7 @@ class Block {
     this.type=type;
     let optisons = {
       target:true,
+      jiki:false,
       damegeRate:1,
       hp:type.hp,
       restitution: 1,
@@ -308,9 +370,13 @@ class Jiki {
       angle: 0,
       render: {
         fillStyle: "#2020ff",
-          sprite: {
-              texture: './res/jiki.png'
-          }
+        sprite: {
+          texture:'./res/jiki_inv.png',
+          nomal:'./res/jiki.png',
+          muteki:'./res/jiki_inv.png',
+          miss:'./res/jiki_miss.png',
+          shield:'./res/jikib.png'
+        }
       },
       collisionFilter: {
         category: jikiCategory
@@ -321,51 +387,54 @@ class Jiki {
     this.body = Bodies.trapezoid(x, y,20,30,0.6,optisons);
     Composite.add(world, this.body);
   }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
 }
 class Tama {
   //　コンストラクタ宣言
   constructor(x, y,ang,fce){
-      let optisons = {
-        target:false,
-        damegeRate:4,
-        restitution: 0.8,
-          friction: 0,
-          frictionAir: 0,
-          angle: ang,
-          render: {
-            fillStyle: "#ffffff"
-          },
-          collisionFilter: {
-            category: commonCategory,
-            mask:commonCategory|blockCategory|bossCategory
-          },
-          force:{x:Math.cos(jikiangle)*fce,y:Math.sin(jikiangle)*fce},
-          isStatic: false,
-      };
-      this.r = 10;
-      this.timer=50;
-      this.body = Bodies.circle(x, y, this.r, optisons);
-      Composite.add(world, this.body);
+    let optisons = {
+      target:false,
+      damegeRate:4,
+      restitution: 0.8,
+      friction: 0,
+      frictionAir: 0,
+      angle: ang,
+      render: {
+        fillStyle: "#ffffff"
+      },
+      collisionFilter: {
+        category: commonCategory,
+        mask:commonCategory|blockCategory|bossCategory
+      },
+      force:{x:Math.cos(jikiangle)*fce,y:Math.sin(jikiangle)*fce},
+      isStatic: false,
+    };
+    this.r = 10;
+    this.timer=50;
+    this.body = Bodies.circle(x, y, this.r, optisons);
+    Composite.add(world, this.body);
   }
-
+  
   //　ボールが画面外にはみ出たかを判定するメソッド
   isOffScreen() {
-      let pos = this.body.position;
-      return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+    let pos = this.body.position;
+    return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
-
+  
   removeFromWorld() {
-      World.remove(world, this.body);
+    World.remove(world, this.body);
   }
 }
 
 //キー入力
 function keyDownHandler(e) {
-    if (e.key === 'd') keyr = true;
-    if (e.key === 'w') keyu = true;
-    if (e.key === 's') keyd = true;
-    if (e.key === 'a') keyl = true;
-  }
+  if (e.key === 'd') keyr = true;
+  if (e.key === 'w') keyu = true;
+  if (e.key === 's') keyd = true;
+  if (e.key === 'a') keyl = true;
+}
 function keyUpHandler(e) {
   if (e.key === 'd') {
     keyr = false;
@@ -376,7 +445,7 @@ function keyUpHandler(e) {
   if (e.key === 's') {
     keyd = false;
   }
-if (e.key === 'a') {
+  if (e.key === 'a') {
     keyl = false;
   }
 }
