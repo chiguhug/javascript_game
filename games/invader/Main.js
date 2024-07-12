@@ -58,10 +58,10 @@ document.addEventListener("keyup", keyUpHandler, false);
 *****************************************************/
 //自弾クラス
 class Jtama {
-  constructor(_alive, _x, _y, _image) {
+  static image = "res/tamaji_16x12.png";
+  constructor(_alive, _x, _y) {
     this.x = _x;
     this.y = _y;
-    this.image = _image;
     this.alive = _alive;
   }
 }
@@ -194,7 +194,7 @@ for (let j = 0; j <= 4; j++) {
 
 //自機のミサイルのインスタンス生成
 for (let i = 0; i <= 6; i++) {
-  jtama[i] = new Jtama(false, 0, 0, "res/tamaji_16x12.png");
+  jtama[i] = new Jtama(false, 0, 0);
 }
 
 /****************************************************
@@ -296,7 +296,7 @@ function draw() {
 //自機のミサイル処理
 function shotmove() {
   tamaimg = new Image();
-  tamaimg.src = "res/tamaji_16x12.png";
+  tamaimg.src = Jtama.image;
   for (h = 0; h <= 6; h++){
   	if(jtama[h].alive){
 			//ミサイルの移動と表示
@@ -442,9 +442,6 @@ function dropchance(_i, _j){
 
 //敵が弾を撃つかどうかの抽選
 function shotchance(_i, _j){
-  // let i = _i;
-  // let j = _j;
-  // let beemnow = false;
   let ratio;
   switch (_i) {
     //上から5段目と4段目のインベーダーのとき
