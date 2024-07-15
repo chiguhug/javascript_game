@@ -295,7 +295,7 @@ function draw() {
 function shotmove() {
   tamaimg = new Image();
   tamaimg.src = Jtama.image;
-  for (h = 0; h <= 6; h++){
+  for (h = 0; h < Jtama.length; h++){
   	if(jtama[h].alive){
 			//ミサイルの移動と表示
     	if(!miss && !clear){
@@ -304,8 +304,8 @@ function shotmove() {
     	ctx.drawImage(tamaimg, jtama[h].x, jtama[h].y, 1, 10);
 
 			//ミサイルと敵機との当たり判定
-  		for (i = 0; i <= 4; i++){
-    		for (j = 0; j <= 9; j++){
+  		for (i = 0; i < teki.length; i++){
+    		for (j = 0; j < teki[i].length; j++){
       		if(teki[i][j].alive){	//生きている敵がいたら
         		if (jtama[h].y <= i*50+74 && jtama[h].y > i*50+40){	//ミサイルの先頭の位置が敵の高さの範囲に入っているとき
           		if (jtama[h].x >= teki[i][j].x+tx && jtama[h].x <= teki[i][j].x+tx+32){	//ミサイルのx座標が敵の幅の範囲に入っているとき
