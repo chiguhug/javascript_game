@@ -212,25 +212,23 @@ setInterval(game, 10);
 //自機表示・枠表示
 function draw() {
   //自機の表示
-	jikiimg = new Image();
-  jikiimg.src = "res/jiki_32x24.png";
+	let jikiimg = new Image();
   if (!miss&&!shield) {	//ミス状態でない、かつシールド状態でない（通常状態のとき）
+    jikiimg.src = "res/jiki_32x24.png";
     if (invincible>0&&invincible%2==1){	//無敵タイマ起動中、かつ、カウントが奇数のとき
     }else{
       ctx.globalAlpha = 1;
     	ctx.drawImage(jikiimg, x, 450, 40, 40);
     }
   }else if (!miss&&shield) {	//ミス状態でない、かつシールド中
-    jikisimg = new Image();
-    jikisimg.src = "res/jikib_32x24.png";
+    jikiimg.src = "res/jikib_32x24.png";
     ctx.globalAlpha = 1;
-    ctx.drawImage(jikisimg, x, 450, 40, 40);
+    ctx.drawImage(jikiimg, x, 450, 40, 40);
   } else {	//ミスしたとき
-    jikimissimg = new Image();
+    jikiimg.src = "res/jiki_miss_32x24.png";
     ctx.globalAlpha = 0.4;
-    jikimissimg.src = "res/jiki_miss_32x24.png";
-    ctx.drawImage(jikimissimg, x - 10, 450 - 10, 60, 60);
     ctx.globalAlpha = 1;
+    ctx.drawImage(jikiimg, x - 10, 450 - 10, 60, 60);
   }
 
 	//ゲーム枠の表示
