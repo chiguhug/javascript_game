@@ -96,6 +96,60 @@ const init = () => {
   // 物理世界を更新
   const runner = Runner.create();
   Runner.run(runner, engine);
+  //衝突判定
+  Matter.Events.on(engine, "collisionStart", function(event) {
+    let pairs = event.pairs;
+    pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
+//      if (collision_id != pair.id) {
+ //       collision_id = pair.id;
+        
+        if (pair.bodyA.target) {
+          if(pair.bodyA.jiki&&shield)invincible=180;
+          if(!pair.bodyA.jiki||!invincible>0){
+          pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+          if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+          if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
+          if(pair.bodyA.hp<=0){
+            if(pair.bodyA.jiki){
+              miss=true;
+              pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
+              misstimer=120;
+            }else{
+              Matter.Body.setStatic(pair.bodyA, false);
+              Body.setMass(pair.bodyA,pair.bodyA.massset)
+              pair.bodyA.target=false;
+              pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
+            }
+          }
+         }
+
+        }
+        if (pair.bodyB.target) {
+          if(pair.bodyA.jiki&&shield)invincible=180;
+          if(!pair.bodyA.jiki||!invincible>0){
+          pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+          if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+          if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
+          if(pair.bodyB.hp<=0){
+            if(pair.bodyA.jiki){
+              miss=true;
+              pair.bodyB.render.sprite.texture=pair.bodyB.render.sprite.miss;
+              misstimer=120;
+            }else{
+              Matter.Body.setStatic(pair.bodyB, false);
+              Body.setMass(pair.bodyB,pair.bodyB.massset)
+              pair.bodyB.target=false;
+              pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
+            }
+          }
+          }
+        }
+        
+        console.log(pair); //これで何がぶつかっているかがわかる
+//      }
+      
+    });
+  });
   
   world_canvas.addEventListener("click", event => {
     //  console.log(event.offsetX, event.offsetY);
@@ -197,60 +251,7 @@ function draw() {
       jiki.removeFromWorld();
     }
   }
-  //衝突判定
-  Matter.Events.on(engine, "collisionStart", function(event) {
-    let pairs = event.pairs;
-    pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-      if (collision_id != pair.id) {
-        collision_id = pair.id;
-        
-        if (pair.bodyA.target) {
-          if(pair.bodyA.jiki&&shield)invincible=180;
-          if(!pair.bodyA.jiki||!invincible>0){
-          pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
-          if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
-          if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
-          if(pair.bodyA.hp<=0){
-            if(pair.bodyA.jiki){
-              miss=true;
-              pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
-              misstimer=120;
-            }else{
-              Matter.Body.setStatic(pair.bodyA, false);
-              Body.setMass(pair.bodyA,pair.bodyA.massset)
-              pair.bodyA.target=false;
-              pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
-            }
-          }
-         }
 
-        }
-        if (pair.bodyB.target) {
-          if(pair.bodyA.jiki&&shield)invincible=180;
-          if(!pair.bodyA.jiki||!invincible>0){
-          pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
-          if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
-          if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
-          if(pair.bodyB.hp<=0){
-            if(pair.bodyA.jiki){
-              miss=true;
-              pair.bodyB.render.sprite.texture=pair.bodyB.render.sprite.miss;
-              misstimer=120;
-            }else{
-              Matter.Body.setStatic(pair.bodyB, false);
-              Body.setMass(pair.bodyB,pair.bodyB.massset)
-              pair.bodyB.target=false;
-              pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
-            }
-          }
-          }
-        }
-        
-        // console.log(pair); //これで何がぶつかっているかがわかる
-      }
-      
-    });
-  });
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
   context.clearRect(830, 310, 340, 260);
@@ -258,8 +259,8 @@ function draw() {
   context.font = "48px serif";
   context.fillText("STAGE", 850, 80);
   context.fillText(String(stage)+"-"+(substage), 1020, 80);
-  context.font = "48px serif";
   context.fillText("Score", 850, 360);
+  context.font = "40px serif";
   context.fillText(String(Math.floor(score)), 980, 360);
   context.beginPath();
   context.rect(850, 420, 300,40 );
