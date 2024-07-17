@@ -100,8 +100,6 @@ const init = () => {
   Matter.Events.on(engine, "collisionStart", function(event) {
     let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-//      if (collision_id != pair.id) {
- //       collision_id = pair.id;
         
         if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&shield)invincible=180;
@@ -144,12 +142,12 @@ const init = () => {
           }
           }
         }
-        
-        console.log(pair); //これで何がぶつかっているかがわかる
-//      }
-      
+        let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
+        console.log(pair.bodyB.angle,blockangle,pair); //これで何がぶつかっているかがわかる
+        console.log(Math.tan(1,0)); //これで何がぶつかっているかがわかる
     });
   });
+
   
   world_canvas.addEventListener("click", event => {
     //  console.log(event.offsetX, event.offsetY);
@@ -421,6 +419,7 @@ class Tama {
   //　ボールが画面外にはみ出たかを判定するメソッド
   isOffScreen() {
     let pos = this.body.position;
+//    console.log(pos,this.body.speed,this.body);
     return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
   
