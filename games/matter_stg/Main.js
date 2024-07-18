@@ -102,10 +102,19 @@ const init = () => {
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
         
         if (pair.bodyA.target) {
-          if(pair.bodyA.jiki&&shield)invincible=180;
+          if(pair.bodyA.jiki&&shield)
+            {shield=false;
+              invincible=180;
+            }
           if(!pair.bodyA.jiki||!invincible>0){
-          pair.bodyA.hp=pair.bodyA.hp-pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
-          if(!pair.bodyA.jiki)score=score+pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate;
+            let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
+            let incidence=blockangle-pair.bodyB.angle+Math.PI/2;
+            let reflectionangle=Math.PI-incidence;
+            let power=Math.cos(incidence-reflectionangle)+1;
+            let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
+            pair.bodyA.hp=pair.bodyA.hp-damege;
+//            console.log(power,damege);
+          if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
             if(pair.bodyA.jiki){
@@ -113,20 +122,31 @@ const init = () => {
               pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
               misstimer=120;
             }else{
-              Matter.Body.setStatic(pair.bodyA, false);
+              Body.applyForce( pair.bodyA, {x: pair.bodyA.position.x, y: pair.bodyA.position.y}, {x: Math.cos(incidence), y: Math.sin(incidence)});
+              Body.setStatic(pair.bodyA, false);
               Body.setMass(pair.bodyA,pair.bodyA.massset)
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
+              console.log(Math.cos(incidence),Math.sin(incidence));
             }
           }
          }
 
         }
         if (pair.bodyB.target) {
-          if(pair.bodyA.jiki&&shield)invincible=180;
-          if(!pair.bodyA.jiki||!invincible>0){
-          pair.bodyB.hp=pair.bodyB.hp-pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
-          if(!pair.bodyB.jiki)score=score+pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate;
+          if(pair.bodyB.jiki&&shield)
+            {shield=false;
+              invincible=180;
+            }
+          if(!pair.bodyB.jiki||!invincible>0){
+            let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
+            let incidence=blockangle-pair.bodyA.angle+Math.PI/2;
+            let reflectionangle=Math.PI-incidence;
+            let power=Math.cos(incidence-reflectionangle)+1;
+            let damege=pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate*power;
+            pair.bodyB.hp=pair.bodyB.hp-damege;
+//            console.log(power,damege);
+          if(!pair.bodyB.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
           if(pair.bodyB.hp<=0){
             if(pair.bodyA.jiki){
@@ -142,9 +162,8 @@ const init = () => {
           }
           }
         }
-        let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
-        console.log(pair.bodyB.angle,blockangle,pair); //これで何がぶつかっているかがわかる
-        console.log(Math.tan(1,0)); //これで何がぶつかっているかがわかる
+
+ //       console.log(pair.bodyB.angle,blockangle,incidence,reflectionangle,power); //これで何がぶつかっているかがわかる
     });
   });
 
