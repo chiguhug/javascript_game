@@ -107,12 +107,7 @@ const init = () => {
               invincible=180;
             }
           if(!pair.bodyA.jiki||!invincible>0){
-            let blockangle=0;
-            if(pair.collision.tangent.x*pair.collision.tangent.y<0){
-            blockangle=Math.PI-Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
-          }else{
-            blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
-          }
+            let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
             let incidence=Math.PI/2-blockangle+pair.bodyB.angle;
             let reflectionangle=Math.PI-incidence;
             let power=Math.cos(incidence-reflectionangle)+1;
