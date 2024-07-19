@@ -108,13 +108,13 @@ const init = () => {
             }
           if(!pair.bodyA.jiki||!invincible>0){
             let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
-            let incidence=Math.PI/2-blockangle+pair.bodyB.angle;
-            let reflectionangle=Math.PI-incidence;
-            let power=Math.cos(incidence-reflectionangle)+1;
+            let incidence=Math.atan2(pair.bodyB.position.y-pair.bodyB.positionPrev.y,pair.bodyB.position.x-pair.bodyB.positionPrev.x);
+            let colangle=blockangle+incidence;
+            let power=Math.cos(colangle);
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             pair.bodyA.hp=pair.bodyA.hp-damege;
-            console.log(pair.collision.tangent.x,pair.collision.tangent.y);
-            console.log(blockangle,pair.bodyB.angle,incidence,reflectionangle,power,damege);
+            console.log(blockangle,incidence,colangle,power,damege);
+            console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
@@ -300,7 +300,7 @@ function draw() {
 }
 //自機の弾発射処理
 function shot(renge) {
-  tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000))
+  tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000));
 }
 function setblock(stage) {
   switch(stage){
@@ -308,7 +308,7 @@ function setblock(stage) {
     for(i=1;i<=3;i++){
       for(y=0;y<5;y++){
 //        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==1)blocks.push(new Block(Math.random()*742+44,400,light,4,30,Math.PI/4));
+        if(i==1)blocks.push(new Block(Math.random()*742+44,300,light,4,30,Math.PI/2));
         if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
       }
