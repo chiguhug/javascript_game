@@ -107,13 +107,19 @@ const init = () => {
               invincible=180;
             }
           if(!pair.bodyA.jiki||!invincible>0){
-            let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
-            let incidence=blockangle-pair.bodyB.angle+Math.PI/2;
+            let blockangle=0;
+            if(pair.collision.tangent.x*pair.collision.tangent.y<0){
+            blockangle=Math.PI-Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
+          }else{
+            blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
+          }
+            let incidence=Math.PI/2-blockangle+pair.bodyB.angle;
             let reflectionangle=Math.PI-incidence;
             let power=Math.cos(incidence-reflectionangle)+1;
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             pair.bodyA.hp=pair.bodyA.hp-damege;
-//            console.log(power,damege);
+            console.log(pair.collision.tangent.x,pair.collision.tangent.y);
+            console.log(blockangle,pair.bodyB.angle,incidence,reflectionangle,power,damege);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
@@ -122,12 +128,12 @@ const init = () => {
               pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
               misstimer=120;
             }else{
-              Body.applyForce( pair.bodyA, {x: pair.bodyA.position.x, y: pair.bodyA.position.y}, {x: Math.cos(incidence), y: Math.sin(incidence)});
               Body.setStatic(pair.bodyA, false);
-              Body.setMass(pair.bodyA,pair.bodyA.massset)
+              Body.setMass(pair.bodyA,pair.bodyA.massset);
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
-              console.log(Math.cos(incidence),Math.sin(incidence));
+              Body.setVelocity( pair.bodyA,{x: Math.cos(incidence)*damege/2, y: Math.sin(incidence)*damege/2});
+              console.log(Math.cos(incidence),Math.sin(incidence),pair.bodyA.velocity);
             }
           }
          }
@@ -306,7 +312,8 @@ function setblock(stage) {
     case 1:
     for(i=1;i<=3;i++){
       for(y=0;y<5;y++){
-        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+//        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==1)blocks.push(new Block(Math.random()*742+44,400,light,4,30,Math.PI/4));
         if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
       }
