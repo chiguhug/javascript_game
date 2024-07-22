@@ -112,9 +112,9 @@ const init = () => {
             let colangle=blockangle+incidence;
             let power=Math.cos(colangle);
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
-            pair.bodyA.hp=pair.bodyA.hp-damege;
-            console.log(blockangle,incidence,colangle,power,damege);
-            console.log(pair.bodyB.positionPrev,pair.bodyB.position);
+            if(damege>0)pair.bodyA.hp=pair.bodyA.hp-damege;
+            // console.log(blockangle,incidence,colangle,power,damege);
+            // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
@@ -127,8 +127,9 @@ const init = () => {
               Body.setMass(pair.bodyA,pair.bodyA.massset);
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
-              Body.setVelocity( pair.bodyA,{x: Math.cos(incidence)*damege/2, y: Math.sin(incidence)*damege/2});
-              console.log(Math.cos(incidence),Math.sin(incidence),pair.bodyA.velocity);
+              Body.setVelocity( pair.bodyA,{x: Math.cos(-blockangle)*pair.bodyB.speed*0.8, y: Math.sin(-blockangle)*pair.bodyB.speed*0.8});
+              let refrectangle=pair.bodyB.angle+blockangle*2;
+              Body.setVelocity( pair.bodyB,{x: -Math.cos(refrectangle)*pair.bodyB.speed*0.8, y: Math.sin(refrectangle)*pair.bodyB.speed*0.8});
             }
           }
          }
@@ -140,13 +141,12 @@ const init = () => {
               invincible=180;
             }
           if(!pair.bodyB.jiki||!invincible>0){
-            let blockangle=Math.tan(pair.collision.tangent.x,pair.collision.tangent.y);
-            let incidence=blockangle-pair.bodyA.angle+Math.PI/2;
-            let reflectionangle=Math.PI-incidence;
-            let power=Math.cos(incidence-reflectionangle)+1;
+            let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
+            let incidence=Math.atan2(pair.bodyA.position.y-pair.bodyA.positionPrev.y,pair.bodyA.position.x-pair.bodyA.positionPrev.x);
+            let colangle=blockangle+incidence;
+            let power=Math.cos(colangle);
             let damege=pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate*power;
-            pair.bodyB.hp=pair.bodyB.hp-damege;
-//            console.log(power,damege);
+            if(damege>0)pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
           if(pair.bodyB.hp<=0){
@@ -156,9 +156,12 @@ const init = () => {
               misstimer=120;
             }else{
               Matter.Body.setStatic(pair.bodyB, false);
-              Body.setMass(pair.bodyB,pair.bodyB.massset)
+              Body.setMass(pair.bodyB,pair.bodyB.massset);
               pair.bodyB.target=false;
               pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
+              Body.setVelocity( pair.bodyB,{x: Math.cos(-blockangle)*pair.bodyA.speed*0.8, y: Math.sin(-blockangle)*pair.bodyA.speed*0.8});
+              let refrectangle=pair.bodyA.angle+blockangle*2;
+              Body.setVelocity( pair.bodyA,{x: -Math.cos(refrectangle)*pair.bodyA.speed/2, y: Math.sin(refrectangle)*pair.bodyA.speed/2});
             }
           }
           }
