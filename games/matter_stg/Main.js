@@ -36,13 +36,13 @@ let keyd = false;
 let power = 0;
 let shotwait = 0;
 let refrectwait = 50;
-let zanki = 3;
+let zanki = 6;
 let respawnwait = 0;
 let clear = true;
 let miss = false;
 let misstimer = 0;
 let gameover = false;
-let extend = 0;
+let extend = 1;
 let shield = false;
 let invincible = 120;
 let retflag = false;
@@ -113,16 +113,17 @@ const init = () => {
             let power=Math.cos(colangle);
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             if(damege>0)pair.bodyA.hp=pair.bodyA.hp-damege;
-            // console.log(blockangle,incidence,colangle,power,damege);
+            //  console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
-            if(pair.bodyA.jiki){
+            if(pair.bodyA.jiki&&!miss){
               miss=true;
               pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
               misstimer=120;
-            }else{
+              zanki--;
+            }else if(!pair.bodyA.jiki){
               Body.setStatic(pair.bodyA, false);
               Body.setMass(pair.bodyA,pair.bodyA.massset);
               pair.bodyA.target=false;
@@ -141,20 +142,22 @@ const init = () => {
               invincible=180;
             }
           if(!pair.bodyB.jiki||!invincible>0){
-            let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
+            let blockangle=Math.atan2(-pair.collision.tangent.x,-pair.collision.tangent.y);
             let incidence=Math.atan2(pair.bodyA.position.y-pair.bodyA.positionPrev.y,pair.bodyA.position.x-pair.bodyA.positionPrev.x);
             let colangle=blockangle+incidence;
             let power=Math.cos(colangle);
             let damege=pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate*power;
+            // console.log(blockangle,incidence,colangle,power,damege);
             if(damege>0)pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
-          if(pair.bodyA.jiki)jikihp=pair.bodyB.hp;
+          if(pair.bodyB.jiki)jikihp=pair.bodyB.hp;
           if(pair.bodyB.hp<=0){
-            if(pair.bodyA.jiki){
+            if(pair.bodyB.jiki&&!miss){
               miss=true;
               pair.bodyB.render.sprite.texture=pair.bodyB.render.sprite.miss;
               misstimer=120;
-            }else{
+              zanki--;
+            }else if(!pair.bodyA.jiki){
               Matter.Body.setStatic(pair.bodyB, false);
               Body.setMass(pair.bodyB,pair.bodyB.massset);
               pair.bodyB.target=false;
@@ -166,15 +169,11 @@ const init = () => {
           }
           }
         }
-
- //       console.log(pair.bodyB.angle,blockangle,incidence,reflectionangle,power); //これで何がぶつかっているかがわかる
     });
   });
 
   
   world_canvas.addEventListener("click", event => {
-    //  console.log(event.offsetX, event.offsetY);
-    //  console.log(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
     if(shotwait<=0&&!miss){
       shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
       shotwait=10;
@@ -236,7 +235,7 @@ function move() {
 //　描画関数
 function draw() {
   if(!setstage){
-    setblock(1);
+    setblock();
     setstage=true;
   }
   //画面外に出た弾・ブロックの消滅
@@ -290,6 +289,18 @@ function draw() {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
+  context.beginPath();
+  if(zanki>=0&&zanki<=5){
+    context.beginPath();
+    for(i=1;i<=zanki;i++)context.fillText("💙", 800+i*50, 400);
+    context.closePath();
+  }else if(zanki>=6){
+    context.fillText("💙", 850, 400)
+    context.fill();
+    context.fillStyle = "black";
+    context.fillText("✖ "+zanki, 910, 400)
+  }
+  context.closePath();
   if(jikihp>=0){
     context.beginPath();
     context.rect(850, 420, jikihp*3,40 );
@@ -305,13 +316,12 @@ function draw() {
 function shot(renge) {
   tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000));
 }
-function setblock(stage) {
+function setblock() {
   switch(stage){
     case 1:
     for(i=1;i<=3;i++){
       for(y=0;y<5;y++){
-//        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==1)blocks.push(new Block(Math.random()*742+44,300,light,4,30,Math.PI/2));
+        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
       }
