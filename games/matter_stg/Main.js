@@ -20,7 +20,7 @@ bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
-let substage = 0;
+let substage = 1;
 let setstage = true;
 let score = 0;
 let jikix=400;
@@ -36,7 +36,7 @@ let keyd = false;
 let power = 0;
 let shotwait = 0;
 let refrectwait = 50;
-let zanki = 6;
+let zanki = 3;
 let respawnwait = 0;
 let clear = true;
 let miss = false;
@@ -112,8 +112,9 @@ const init = () => {
             let colangle=blockangle+incidence;
             let power=Math.cos(colangle);
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
-            if(damege>0)pair.bodyA.hp=pair.bodyA.hp-damege;
-            //  console.log(blockangle,incidence,colangle,power,damege);
+            if(damege<0)damege=0;
+              pair.bodyA.hp=pair.bodyA.hp-damege;
+              console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
@@ -148,7 +149,8 @@ const init = () => {
             let power=Math.cos(colangle);
             let damege=pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate*power;
             // console.log(blockangle,incidence,colangle,power,damege);
-            if(damege>0)pair.bodyB.hp=pair.bodyB.hp-damege;
+            if(damege<0)damege=0;
+              pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
           if(pair.bodyB.jiki)jikihp=pair.bodyB.hp;
           if(pair.bodyB.hp<=0){
@@ -174,7 +176,7 @@ const init = () => {
 
   
   world_canvas.addEventListener("click", event => {
-    if(shotwait<=0&&!miss){
+    if(shotwait<=0&&!miss&&setstage&&!clear){
       shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
       shotwait=10;
     }else if(miss&&misstimer==0){
@@ -184,6 +186,9 @@ const init = () => {
       miss=false;
       jikihp=100;
       invincible=120;
+    }else if(clear){
+      setblock();
+      substage++;
     }
   });
   
@@ -200,6 +205,7 @@ const init = () => {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
+  setblock();
   main();
 }
 //　Main関数
@@ -212,9 +218,15 @@ function main() {
       jiki.body.render.sprite.texture=jiki.body.render.sprite.nomal;
     }
   }
+  extendcheck();
   move();
   draw();
   window.requestAnimationFrame(main);
+}
+function extendcheck(){
+  if(score>extend*1000){
+    zanki++;extend++;
+  }
 }
 function move() {
   //キー入力状況に応じた自機の上下左右移動
@@ -234,10 +246,6 @@ function move() {
 
 //　描画関数
 function draw() {
-  if(!setstage){
-    setblock();
-    setstage=true;
-  }
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
     tamas[i].timer--
@@ -262,8 +270,9 @@ function draw() {
   // console.log(blocks.length);
   if (blocks.length==0){
     setstage=false;
-    substage++;
+    if(tamas.length==0)clear=true;
   }
+
   //ミスタイマーとミスした自機削除処理
   if(miss&&misstimer>0){
     misstimer--;
@@ -271,7 +280,12 @@ function draw() {
       jiki.removeFromWorld();
     }
   }
+if(clear){
+  clrimg = new Image();
+  clrimg.src = "res/text_gameclear_e.png";
+  context.drawImage(clrimg, 100,200, 500, 100);
 
+}
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
   context.clearRect(830, 310, 340, 260);
@@ -324,6 +338,8 @@ function setblock() {
         if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+        setstage=true;
+        clear=false;
       }
     }
   }
