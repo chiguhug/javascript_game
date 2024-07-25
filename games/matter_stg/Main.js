@@ -51,6 +51,8 @@ let tact = 0;
 var blocks = [];
 var tamas = [];
 var atacks = [];
+let cleartext=null;
+let gameovertext=null;
 
 document.write
 document.addEventListener("keydown", keyDownHandler, false);
@@ -124,6 +126,7 @@ const init = () => {
               pair.bodyA.render.sprite.texture=pair.bodyA.render.sprite.miss;
               misstimer=120;
               zanki--;
+              if(zanki<0)gameover=true;
             }else if(!pair.bodyA.jiki){
               Body.setStatic(pair.bodyA, false);
               Body.setMass(pair.bodyA,pair.bodyA.massset);
@@ -159,6 +162,7 @@ const init = () => {
               pair.bodyB.render.sprite.texture=pair.bodyB.render.sprite.miss;
               misstimer=120;
               zanki--;
+              if(zanki<0)gameover=true;
             }else if(!pair.bodyA.jiki){
               Matter.Body.setStatic(pair.bodyB, false);
               Body.setMass(pair.bodyB,pair.bodyB.massset);
@@ -178,17 +182,29 @@ const init = () => {
   world_canvas.addEventListener("click", event => {
     if(shotwait<=0&&!miss&&setstage&&!clear){
       shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
-      shotwait=10;
-    }else if(miss&&misstimer==0){
+    }else if(gameover&&misstimer==0){
+      restart();
+    }else if(miss&&misstimer==0&&clear&&!gameover){
       jikix=400;
       jikiy=550;
       jiki = new Jiki(jikix,jikiy);
       miss=false;
       jikihp=100;
       invincible=120;
-    }else if(clear){
       setblock();
       substage++;
+      cleartext.removeFromWorld();
+    }else if(miss&&misstimer==0&&!gameover){
+      jikix=400;
+      jikiy=550;
+      jiki = new Jiki(jikix,jikiy);
+      miss=false;
+      jikihp=100;
+      invincible=120;
+    }else if(clear&&!gameover){
+      setblock();
+      substage++;
+      cleartext.removeFromWorld();
     }
   });
   
@@ -270,7 +286,12 @@ function draw() {
   // console.log(blocks.length);
   if (blocks.length==0){
     setstage=false;
-    if(tamas.length==0)clear=true;
+    if(tamas.length==0&&!clear){
+      clear=true;
+      if(miss&&zanki<0){}else{
+        cleartext=new Cleartext();
+        }
+    }
   }
 
   //ミスタイマーとミスした自機削除処理
@@ -278,14 +299,12 @@ function draw() {
     misstimer--;
     if(misstimer==0){
       jiki.removeFromWorld();
+      if(gameover){
+        gameovertext=new Gameovertext();
+      }
     }
   }
-if(clear){
-  clrimg = new Image();
-  clrimg.src = "res/text_gameclear_e.png";
-  context.drawImage(clrimg, 100,200, 500, 100);
 
-}
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
   context.clearRect(830, 310, 340, 260);
@@ -326,6 +345,24 @@ if(clear){
   }
   
 }
+function restart() {
+  gameovertext.removeFromWorld();
+  clearblock();
+  cleartama();
+  jikix=400;
+  jikiy=550;
+  jiki = new Jiki(jikix,jikiy);
+  miss=false;
+  jikihp=100;
+  invincible=120;
+  setblock();
+  substage=1;
+  zanki=3
+  score=0
+  extend=1
+  gameover=false;
+}
+
 //自機の弾発射処理
 function shot(renge) {
   tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000));
@@ -344,7 +381,20 @@ function setblock() {
     }
   }
 }
-class Wall {
+function clearblock() {
+  blocks.forEach(function(block) {
+    block.removeFromWorld();
+  });
+  blocks.splice(0,blocks.length);
+}
+function cleartama() {
+  tamas.forEach(function(tama) {
+    tama.removeFromWorld();
+  });
+  tamas.splice(0,tamas.length);
+}
+
+  class Wall {
   //　コンストラクタ宣言
   constructor(x, y, w, h, a, s, c){
     let optisons = {
@@ -465,7 +515,6 @@ class Tama {
     this.body = Bodies.circle(x, y, this.r, optisons);
     Composite.add(world, this.body);
   }
-  
   //　ボールが画面外にはみ出たかを判定するメソッド
   isOffScreen() {
     let pos = this.body.position;
@@ -477,7 +526,42 @@ class Tama {
     World.remove(world, this.body);
   }
 }
-
+class Cleartext{
+  constructor(){
+    let optisons = {
+      isStatic: true,
+      render: {
+        fillStyle: "#2020ff",
+        sprite: {
+          texture:'./res/text_gameclear_e.png'
+        }
+      }
+    }
+    this.body = Bodies.circle(400, 300, 10, optisons);
+    Composite.add(world, this.body);
+  }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
+class Gameovertext{
+  constructor(){
+    let optisons = {
+      isStatic: true,
+      render: {
+        fillStyle: "#2020ff",
+        sprite: {
+          texture:'./res/text_gameover_e.png'
+        }
+      }
+    }
+    this.body = Bodies.circle(400, 300, 10, optisons);
+    Composite.add(world, this.body);
+  }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
 //キー入力
 function keyDownHandler(e) {
   if (e.key === 'd') keyr = true;
