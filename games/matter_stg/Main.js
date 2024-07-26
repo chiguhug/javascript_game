@@ -43,7 +43,9 @@ let miss = false;
 let misstimer = 0;
 let gameover = false;
 let extend = 1;
-let shield = false;
+let shield = null;
+let shielddur=0;
+let scharge = 100;
 let invincible = 120;
 let retflag = false;
 let collision_id = null;
@@ -53,8 +55,6 @@ var tamas = [];
 var atacks = [];
 let cleartext=null;
 let gameovertext=null;
-
-document.write
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 const init = () => {
@@ -102,8 +102,9 @@ const init = () => {
   Matter.Events.on(engine, "collisionStart", function(event) {
     let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-        
-        if (pair.bodyA.target) {
+        if(pair.bodyA.shield){
+          Body.setVelocity( pair.bodyB,{x: Math.cos(pair.bodyA.angle-Math.PI/2)*30, y: Math.sin(pair.bodyA.angle-Math.PI/2)*30});
+        }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&shield)
             {shield=false;
               invincible=180;
@@ -140,7 +141,9 @@ const init = () => {
          }
 
         }
-        if (pair.bodyB.target) {
+        if(pair.bodyB.shield){
+          Body.setVelocity( pair.bodyA,{x: Math.cos(pair.bodyB.angle-Math.PI/2)*30, y: Math.sin(pair.bodyB.angle-Math.PI/2)*30});
+        }else if (pair.bodyB.target) {
           if(pair.bodyB.jiki&&shield)
             {shield=false;
               invincible=180;
@@ -178,6 +181,12 @@ const init = () => {
     });
   });
 
+  world_canvas.addEventListener("contextmenu", event => {
+    console.log("右クリック！");
+    shield=new Shield();
+    shielddur=10;
+    event.preventDefault();
+  });
   
   world_canvas.addEventListener("click", event => {
     if(shotwait<=0&&!miss&&setstage&&!clear){
@@ -207,7 +216,7 @@ const init = () => {
       cleartext.removeFromWorld();
     }
   });
-  
+
   // マウスカーソルの位置の取得
   world_canvas.addEventListener("mousemove", event => {
     mousey=event.offsetY;
@@ -304,7 +313,11 @@ function draw() {
       }
     }
   }
-
+//シールドの持続時間管理と効果終了処理
+if(shielddur>0){
+  shielddur--;
+  if(shielddur==0)shield.removeFromWorld();
+}
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
   context.clearRect(830, 310, 340, 260);
@@ -430,6 +443,7 @@ class Block {
     let optisons = {
       target:true,
       jiki:false,
+      shield:false,
       damegeRate:1,
       hp:type.hp,
       restitution: 1,
@@ -462,6 +476,7 @@ class Jiki {
     let optisons = {
       target:true,
       jiki:true,
+      shield:false,
       restitution: 1,
       hp:100,
       friction: 0,
@@ -490,11 +505,43 @@ class Jiki {
     World.remove(world, this.body);
   }
 }
+class Shield {
+  constructor(){
+    let optisons = {
+      target:false,
+      shield:true,
+      jiki:false,
+      restitution: 1,
+      friction: 0,
+      density: 1,
+      angle: jikiangle+Math.PI/2,
+      render: {
+        fillStyle: "#008080",
+//        sprite: {
+//          texture:'./res/jiki_inv.png'
+//        }
+
+      },
+      collisionFilter: {
+        category: jikiCategory
+      },
+      isStatic: true,
+      isSensor: true,
+    };
+    this.body = Bodies.rectangle(jikix+Math.cos(jikiangle)*30, jikiy+Math.sin(jikiangle)*30, 40, 10, optisons);;
+    Composite.add(world, this.body);
+  }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
 class Tama {
   //　コンストラクタ宣言
   constructor(x, y,ang,fce){
     let optisons = {
       target:false,
+      jiki:false,
+      shield:false,
       damegeRate:4,
       restitution: 0.8,
       friction: 0,
@@ -512,7 +559,7 @@ class Tama {
     };
     this.r = 10;
     this.timer=50;
-    this.body = Bodies.circle(x, y, this.r, optisons);
+    this.body = Bodies.circle(jikix, jikiy, this.r, optisons);
     Composite.add(world, this.body);
   }
   //　ボールが画面外にはみ出たかを判定するメソッド
