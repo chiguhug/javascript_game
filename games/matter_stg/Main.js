@@ -43,9 +43,10 @@ let miss = false;
 let misstimer = 0;
 let gameover = false;
 let extend = 1;
+let barrier=false;
 let shield = null;
 let shielddur=0;
-let scharge = 100;
+let scharge = 150;
 let invincible = 120;
 let retflag = false;
 let collision_id = null;
@@ -105,8 +106,8 @@ const init = () => {
         if(pair.bodyA.shield){
           Body.setVelocity( pair.bodyB,{x: Math.cos(pair.bodyA.angle-Math.PI/2)*30, y: Math.sin(pair.bodyA.angle-Math.PI/2)*30});
         }else if (pair.bodyA.target) {
-          if(pair.bodyA.jiki&&shield)
-            {shield=false;
+          if(pair.bodyA.jiki&&barrier)
+            {barrier=false;
               invincible=180;
             }
           if(!pair.bodyA.jiki||!invincible>0){
@@ -144,8 +145,8 @@ const init = () => {
         if(pair.bodyB.shield){
           Body.setVelocity( pair.bodyA,{x: Math.cos(pair.bodyB.angle-Math.PI/2)*30, y: Math.sin(pair.bodyB.angle-Math.PI/2)*30});
         }else if (pair.bodyB.target) {
-          if(pair.bodyB.jiki&&shield)
-            {shield=false;
+          if(pair.bodyB.jiki&&barrier)
+            {barrier=false;
               invincible=180;
             }
           if(!pair.bodyB.jiki||!invincible>0){
@@ -183,8 +184,11 @@ const init = () => {
 
   world_canvas.addEventListener("contextmenu", event => {
     console.log("右クリック！");
+    if(scharge==150&&!clear&&!miss){
     shield=new Shield();
-    shielddur=10;
+    shielddur=30;
+    scharge=0;
+  }
     event.preventDefault();
   });
   
@@ -316,8 +320,13 @@ function draw() {
 //シールドの持続時間管理と効果終了処理
 if(shielddur>0){
   shielddur--;
-  if(shielddur==0)shield.removeFromWorld();
+  if(shielddur==0&&shield!=null){
+console.log
+    shield.removeFromWorld();
+  }
 }
+if(scharge<150)scharge++;
+
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
   context.clearRect(830, 310, 340, 260);
@@ -356,7 +365,14 @@ if(shielddur>0){
     context.fill();
     context.closePath();
   }
-  
+    context.beginPath();
+    context.rect(850, 480, 300,40 );
+    context.beginPath();
+    context.rect(850, 520, scharge*2,40 );
+    context.stroke();
+    context.fillStyle = "#008080";
+    context.fill();
+    context.closePath();
 }
 function restart() {
   gameovertext.removeFromWorld();
@@ -373,6 +389,7 @@ function restart() {
   zanki=3
   score=0
   extend=1
+  scharge=300;
   gameover=false;
 }
 
@@ -528,7 +545,7 @@ class Shield {
       isStatic: true,
       isSensor: true,
     };
-    this.body = Bodies.rectangle(jikix+Math.cos(jikiangle)*30, jikiy+Math.sin(jikiangle)*30, 40, 10, optisons);;
+    this.body = Bodies.rectangle(jikix+Math.cos(jikiangle)*40, jikiy+Math.sin(jikiangle)*40, 60, 20, optisons);;
     Composite.add(world, this.body);
   }
   removeFromWorld() {
