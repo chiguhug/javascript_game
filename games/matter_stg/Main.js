@@ -34,7 +34,8 @@ let keyl = false;
 let keyu = false;
 let keyd = false;
 let power = 0;
-let shotwait = 0;
+let ischarge=false;
+let chargepower=0;
 let refrectwait = 50;
 let zanki = 3;
 let respawnwait = 0;
@@ -118,7 +119,7 @@ const init = () => {
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             if(damege<0)damege=0;
               pair.bodyA.hp=pair.bodyA.hp-damege;
-              console.log(blockangle,incidence,colangle,power,damege);
+            // console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
@@ -183,19 +184,26 @@ const init = () => {
   });
 
   world_canvas.addEventListener("contextmenu", event => {
-    console.log("右クリック！");
-    if(scharge==150&&!clear&&!miss){
-    shield=new Shield();
-    shielddur=30;
-    scharge=0;
-  }
     event.preventDefault();
   });
   
-  world_canvas.addEventListener("click", event => {
-    if(shotwait<=0&&!miss&&setstage&&!clear){
-      shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+  world_canvas.addEventListener("mousedown", event => {
+//    console.log(event.button);//event.buttonが0：左クリック　2右クリック　1ホイールクリック
+    if(!miss&&setstage&&!clear&&event.button==0){
+      ischarge=true;
+      chargepower=0;
+    }else if(event.button==2&&scharge==150&&!clear&&!miss){
+      shield=new Shield();
+      shielddur=30;
+      scharge=0;
+    }
+    });
+
+  world_canvas.addEventListener("mouseup", event => {
+    if(!miss&&setstage&&!clear&&ischarge){
+      shot(chargepower/2000);
     }else if(gameover&&misstimer==0){
+      ischarge=false;
       restart();
     }else if(miss&&misstimer==0&&clear&&!gameover){
       jikix=400;
@@ -219,9 +227,39 @@ const init = () => {
       substage++;
       cleartext.removeFromWorld();
     }
+    ischarge=false;
   });
 
-  // マウスカーソルの位置の取得
+  // world_canvas.addEventListener("click", event => {
+  //   if(!miss&&setstage&&!clear){
+  //     shot(Math.sqrt(Math.pow(event.offsetX - jikix, 2) + Math.pow(event.offsetY - jikiy, 2)));
+  //   }else if(gameover&&misstimer==0){
+  //     restart();
+  //   }else if(miss&&misstimer==0&&clear&&!gameover){
+  //     jikix=400;
+  //     jikiy=550;
+  //     jiki = new Jiki(jikix,jikiy);
+  //     miss=false;
+  //     jikihp=100;
+  //     invincible=120;
+  //     setblock();
+  //     substage++;
+  //     cleartext.removeFromWorld();
+  //   }else if(miss&&misstimer==0&&!gameover){
+  //     jikix=400;
+  //     jikiy=550;
+  //     jiki = new Jiki(jikix,jikiy);
+  //     miss=false;
+  //     jikihp=100;
+  //     invincible=120;
+  //   }else if(clear&&!gameover){
+  //     setblock();
+  //     substage++;
+  //     cleartext.removeFromWorld();
+  //   }
+  // });
+
+// マウスカーソルの位置の取得
   world_canvas.addEventListener("mousemove", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
@@ -240,12 +278,14 @@ const init = () => {
 //　Main関数
 
 function main() {
-  shotwait--;
   if(invincible>0){
     invincible--;
     if(invincible==0){
       jiki.body.render.sprite.texture=jiki.body.render.sprite.nomal;
     }
+  }
+  if (ischarge&&chargepower<50){
+    chargepower++;
   }
   extendcheck();
   move();
@@ -365,6 +405,15 @@ if(scharge<150)scharge++;
     context.fill();
     context.closePath();
   }
+  if(ischarge){
+    context.beginPath();
+    context.rect(850, 460, chargepower*6,5 );
+    context.strokeStyle = "red";
+    context.stroke();
+    context.fillStyle = "red";
+    context.fill();
+    context.closePath();
+  }
     context.beginPath();
     context.rect(850, 480, 300,40 );
     context.beginPath();
@@ -394,8 +443,8 @@ function restart() {
 }
 
 //自機の弾発射処理
-function shot(renge) {
-  tamas.push(new Tama(jikix,jikiy,jikiangle,renge/30000));
+function shot(power) {
+  tamas.push(new Tama(jikix,jikiy,jikiangle,power));
 }
 function setblock() {
   switch(stage){
@@ -555,6 +604,7 @@ class Shield {
 class Tama {
   //　コンストラクタ宣言
   constructor(x, y,ang,fce){
+    this.power=fce;
     let optisons = {
       target:false,
       jiki:false,
