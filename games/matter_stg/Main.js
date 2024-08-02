@@ -55,6 +55,7 @@ let tact = 0;
 var blocks = [];
 var tamas = [];
 var atacks = [];
+var items = [];
 let cleartext=null;
 let gameovertext=null;
 document.addEventListener("keydown", keyDownHandler, false);
@@ -104,7 +105,9 @@ const init = () => {
   Matter.Events.on(engine, "collisionStart", function(event) {
     let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
-        if(pair.bodyA.shield){
+        if(pair.bodyA.item||pair.bodyB.item){
+          console.log("item!");
+        }else if(pair.bodyA.shield){
           Body.setVelocity( pair.bodyB,{x: Math.cos(pair.bodyA.angle-Math.PI/2)*30, y: Math.sin(pair.bodyA.angle-Math.PI/2)*30});
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier)
@@ -119,7 +122,7 @@ const init = () => {
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             if(damege<0)damege=0;
               pair.bodyA.hp=pair.bodyA.hp-damege;
-            // console.log(blockangle,incidence,colangle,power,damege);
+            console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
@@ -138,12 +141,15 @@ const init = () => {
               Body.setVelocity( pair.bodyA,{x: Math.cos(-blockangle)*pair.bodyB.speed*0.8, y: Math.sin(-blockangle)*pair.bodyB.speed*0.8});
               let refrectangle=pair.bodyB.angle+blockangle*2;
               Body.setVelocity( pair.bodyB,{x: -Math.cos(refrectangle)*pair.bodyB.speed*0.8, y: Math.sin(refrectangle)*pair.bodyB.speed*0.8});
+              dropchance(pair.bodyA.position.x,pair.bodyA.position.y);
             }
           }
          }
-
         }
-        if(pair.bodyB.shield){
+
+        if(pair.bodyA.item||pair.bodyB.item){
+
+        }else if(pair.bodyB.shield){
           Body.setVelocity( pair.bodyA,{x: Math.cos(pair.bodyB.angle-Math.PI/2)*30, y: Math.sin(pair.bodyB.angle-Math.PI/2)*30});
         }else if (pair.bodyB.target) {
           if(pair.bodyB.jiki&&barrier)
@@ -176,6 +182,7 @@ const init = () => {
               Body.setVelocity( pair.bodyB,{x: Math.cos(-blockangle)*pair.bodyA.speed*0.8, y: Math.sin(-blockangle)*pair.bodyA.speed*0.8});
               let refrectangle=pair.bodyA.angle+blockangle*2;
               Body.setVelocity( pair.bodyA,{x: -Math.cos(refrectangle)*pair.bodyA.speed/2, y: Math.sin(refrectangle)*pair.bodyA.speed/2});
+              dropchance(pair.bodyB.position.x,pair.bodyB.position.y);
             }
           }
           }
@@ -336,6 +343,15 @@ function draw() {
       i++;
     }
   }
+  for(i=0;i<items.length;){
+    if (items[i].isOffScreen()) {
+      getitem(items[i].body.itemtype,false);
+      items[i].removeFromWorld();
+      items.splice(i,1);
+    }else{
+      i++;
+    }
+  }
   // console.log(blocks.length);
   if (blocks.length==0){
     setstage=false;
@@ -472,6 +488,24 @@ function cleartama() {
   });
   tamas.splice(0,tamas.length);
 }
+function dropchance(x, y){
+  let rate = Math.random()*100;  //アイテムの抽選
+  if (rate < 1) {  //抽選結果が1より小さいとき
+     items.push(new Item(x,y,5,'./res/item_ex.png')); //1機アップアイテムをセット
+  } else if (rate < 5) {  //抽選結果が5より小さいとき
+    items.push(new Item(x,y,4,'./res/item_sh.png')); //バリアアイテムをセット
+  } else if (rate < 10) {  //抽選結果が10より小さいとき
+    items.push(new Item(x,y,3,'./res/item_r.png')); //回復アイテムをセット
+  } else if (rate < 20) {  //抽選結果が20より小さいとき
+    items.push(new Item(x,y,2,'./res/item_p.png')); //パワーアップアイテムをセット
+  } else if (rate < 40) { //抽選結果が40より小さいとき（40%の確率でアイテムを落とす）
+    items.push(new Item(x,y,1,'./res/item_s.png')); //スコアアップアイテムをセット
+  }
+}
+function getitem(type, get){
+console.log(type,get);
+}
+
 
   class Wall {
   //　コンストラクタ宣言
@@ -640,6 +674,44 @@ class Tama {
     World.remove(world, this.body);
   }
 }
+class Item {
+  //　コンストラクタ宣言
+  constructor(x, y, type,img){
+    let optisons = {
+      target:false,
+      jiki:false,
+      shield:false,
+      item:true,
+      itemtype:type,
+      restitution: 0.8,
+      friction: 0,
+      frictionAir: 0.1,
+      angle: 0,
+      render: {
+        fillStyle: "#ffffff",
+        sprite: {
+          texture:img,
+        }
+      },
+      collisionFilter: {
+        category: commonCategory,
+        mask:jikiCategory
+      },
+      isStatic: false,
+      isSensor: true,
+    };
+    this.body = Bodies.circle(x, y, 40, optisons);
+    Composite.add(world, this.body);
+  }
+  isOffScreen() {
+    let pos = this.body.position;
+    return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 900));
+  }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
+
 class Cleartext{
   constructor(){
     let optisons = {
