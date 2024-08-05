@@ -106,13 +106,32 @@ const init = () => {
     let pairs = event.pairs;
     pairs.forEach(function(pair) {//pairs配列をすべて見ていくループ
         if(pair.bodyA.item||pair.bodyB.item){
-          console.log("item!");
+          if(pair.bodyA.item){
+            getitem(pair.bodyA.itemtype,true);
+            for(i=0;i<items.length;i++){
+              if(items[i].body==pair.bodyA){
+                items[i].removeFromWorld();
+                items.splice(i,1);
+              }
+            }
+          }else{
+            if(pair.bodyB.item){
+              getitem(pair.bodyB.itemtype,true);
+              for(i=0;i<items.length;i++){
+                if(items[i].body==pair.bodyB){
+                  items[i].removeFromWorld();
+                  items.splice(i,1);
+                }
+              }
+            }
+          }
         }else if(pair.bodyA.shield){
           Body.setVelocity( pair.bodyB,{x: Math.cos(pair.bodyA.angle-Math.PI/2)*30, y: Math.sin(pair.bodyA.angle-Math.PI/2)*30});
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier)
             {barrier=false;
               invincible=180;
+              jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
             }
           if(!pair.bodyA.jiki||!invincible>0){
             let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
@@ -122,7 +141,7 @@ const init = () => {
             let damege=pair.bodyB.speed*pair.bodyB.mass*pair.bodyB.damegeRate*power;
             if(damege<0)damege=0;
               pair.bodyA.hp=pair.bodyA.hp-damege;
-            console.log(blockangle,incidence,colangle,power,damege);
+            // console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
@@ -155,6 +174,7 @@ const init = () => {
           if(pair.bodyB.jiki&&barrier)
             {barrier=false;
               invincible=180;
+              jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
             }
           if(!pair.bodyB.jiki||!invincible>0){
             let blockangle=Math.atan2(-pair.collision.tangent.x,-pair.collision.tangent.y);
@@ -300,7 +320,7 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
-  if(score>extend*1000){
+  if(score>extend*2000){
     zanki++;extend++;
   }
 }
@@ -368,6 +388,7 @@ function draw() {
     misstimer--;
     if(misstimer==0){
       jiki.removeFromWorld();
+      power=Math.floor(power/2);
       if(gameover){
         gameovertext=new Gameovertext();
       }
@@ -430,6 +451,9 @@ if(scharge<150)scharge++;
     context.fill();
     context.closePath();
   }
+  powerimg = new Image();
+  powerimg.src = "res/item_p.png";
+  for(i=1;i<=power;i++)context.drawImage(powerimg, 800+i*50, 475);
     context.beginPath();
     context.rect(850, 480, 300,40 );
     context.beginPath();
@@ -451,16 +475,27 @@ function restart() {
   invincible=120;
   setblock();
   substage=1;
-  zanki=3
-  score=0
-  extend=1
+  zanki=3;
+  score=0;
+  extend=1;
+  power=0;
   scharge=300;
   gameover=false;
 }
 
 //自機の弾発射処理
-function shot(power) {
-  tamas.push(new Tama(jikix,jikiy,jikiangle,power));
+function shot(shotpower) {
+  tamas.push(new Tama(jikix,jikiy,jikiangle,shotpower));
+  switch(power){
+    case 4:
+      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/6,shotpower));
+    case 3:
+      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/6,shotpower));
+    case 2:
+      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/12,shotpower));
+    case 1:
+      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/12,shotpower));
+  }
 }
 function setblock() {
   switch(stage){
@@ -504,6 +539,41 @@ function dropchance(x, y){
 }
 function getitem(type, get){
 console.log(type,get);
+  if (get)score=score+50;
+  switch(type){
+    case 1://スコアアイテム
+      score=score+200;
+      if (get)score=score+250;//直接獲得した時高得点
+      break;
+    case 2://パワーアップアイテム
+      if(power<4){
+        power++;
+      }else{
+        score=score+100;//最大パワー時ではスコアに変換
+      }
+    break;
+    case 3://回復アイテム
+      jikihp=jikihp+30;
+      if (get)jikihp=jikihp+20;//直接獲得した時回復量UP
+      if (jikihp>100){//余剰回復分をスコアに換算してhp100に補正
+        score=score+2*(jikihp-100);
+        jikihp=100;
+      }
+      jiki.body.hp=jikihp;
+    break;
+    case 4://バリアアイテム
+      if (barrier||invincible>0){//バリアアイテム待機中もしくは効果時間中はスコアに変換
+        score=score+100;
+      }else{
+        barrier=true;
+        jiki.body.render.sprite.texture=jiki.body.render.sprite.shield;
+      }
+    break;
+    case 5://残機アップアイテム
+      zanki=zanki+1;
+    break;
+
+  }
 }
 
 
@@ -655,7 +725,7 @@ class Tama {
         category: commonCategory,
         mask:commonCategory|blockCategory|bossCategory
       },
-      force:{x:Math.cos(jikiangle)*fce,y:Math.sin(jikiangle)*fce},
+      force:{x:Math.cos(ang)*fce,y:Math.sin(ang)*fce},
       isStatic: false,
     };
     this.r = 10;
