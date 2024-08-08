@@ -13,7 +13,7 @@ const World = Matter.World;
 const Body       = Matter.Body;
 
 //初期変数設定
-const commonCategory = 0x0001, // 全オブジェクト共通のカテゴリ
+const commonCategory = 0x0001, // 共通オブジェクトのカテゴリ
 jikiCategory = 0x0002, // 自機オブジェクトのカテゴリ
 blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテゴリ
 bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
@@ -21,11 +21,17 @@ const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
 let stage = 1;
 let substage = 1;
+let maxstagetimer = 0;
+let stagetimer = 0;
+let bossstage = false;
+let bosshp = 0;
+let bossrage = 0;
+let bossstan = 0;
 let setstage = true;
+let grav=1;
 let score = 0;
 let jikix=400;
 let jikiy=550;
-let jikihp=100;
 let mousex=0;
 let mousey=0;
 let jikiangle=0;
@@ -144,7 +150,6 @@ const init = () => {
             // console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
-          if(pair.bodyA.jiki)jikihp=pair.bodyA.hp;
           if(pair.bodyA.hp<=0){
             if(pair.bodyA.jiki&&!miss){
               miss=true;
@@ -186,7 +191,6 @@ const init = () => {
             if(damege<0)damege=0;
               pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
-          if(pair.bodyB.jiki)jikihp=pair.bodyB.hp;
           if(pair.bodyB.hp<=0){
             if(pair.bodyB.jiki&&!miss){
               miss=true;
@@ -237,7 +241,6 @@ const init = () => {
       jikiy=550;
       jiki = new Jiki(jikix,jikiy);
       miss=false;
-      jikihp=100;
       invincible=120;
       setblock();
       substage++;
@@ -247,7 +250,9 @@ const init = () => {
       jikiy=550;
       jiki = new Jiki(jikix,jikiy);
       miss=false;
-      jikihp=100;
+      stagetimer=maxstagetimer;
+      grav=1;
+      world.gravity.y=grav;
       invincible=120;
     }else if(clear&&!gameover){
       setblock();
@@ -311,6 +316,15 @@ function main() {
       jiki.body.render.sprite.texture=jiki.body.render.sprite.nomal;
     }
   }
+  if(!bossstage&&!clear){
+    if(stagetimer>0){
+      stagetimer--;
+    }else{
+      grav=grav+0.01;
+      world.gravity.y=grav;
+    }
+  }
+    
   if (ischarge&&chargepower<50){
     chargepower++;
   }
@@ -334,6 +348,17 @@ function move() {
   if (jikix>786)jikix=786;
   if (jikiy>586)jikiy=586;
   if (jikiy<400)jikiy=400;
+  if(!clear){
+    jikiy=jikiy+grav-1;
+    jiki.body.hp=jiki.body.hp-(grav-1)/30;
+    if(jiki.body.hp<=0&&!miss){
+      miss=true;
+      jiki.body.render.sprite.texture=jiki.body.render.sprite.miss;
+      misstimer=120;
+      zanki--;
+      if(zanki<0)gameover=true;
+    }
+  }
   Matter.Body.setPosition(jiki.body, {x:jikix,y:jikiy});
   //自機の向きをマウスカーソルの方向にする処理
   jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)
@@ -411,6 +436,21 @@ if(scharge<150)scharge++;
   context.font = "48px serif";
   context.fillText("STAGE", 850, 80);
   context.fillText(String(stage)+"-"+(substage), 1020, 80);
+  if(!bossstage){
+    context.beginPath();
+    context.arc(1000, 200, 80, 0,Math.PI*2, false);
+    context.fillStyle = "green";
+    context.fill();
+    context.closePath();
+    context.beginPath();
+    context.moveTo(1000,200);
+    context.arc(1000, 200, 80, -Math.PI/2,(maxstagetimer-stagetimer)/maxstagetimer*Math.PI*2-Math.PI/2, false);
+    context.lineTo(1000,200);
+    context.fillStyle = "red";
+    context.fill();
+    context.closePath();
+  }
+  context.fillStyle = "black";
   context.fillText("Score", 850, 360);
   context.font = "40px serif";
   context.fillText(String(Math.floor(score)), 980, 360);
@@ -433,9 +473,9 @@ if(scharge<150)scharge++;
     context.fillText("✖ "+zanki, 910, 400)
   }
   context.closePath();
-  if(jikihp>=0){
+  if(jiki.body.hp>=0){
     context.beginPath();
-    context.rect(850, 420, jikihp*3,40 );
+    context.rect(850, 420, jiki.body.hp*3,40 );
     context.strokeStyle = "green";
     context.stroke();
     context.fillStyle = "green";
@@ -471,10 +511,10 @@ function restart() {
   jikiy=550;
   jiki = new Jiki(jikix,jikiy);
   miss=false;
-  jikihp=100;
   invincible=120;
-  setblock();
   substage=1;
+  bossstage=false;
+  setblock();
   zanki=3;
   score=0;
   extend=1;
@@ -485,16 +525,18 @@ function restart() {
 
 //自機の弾発射処理
 function shot(shotpower) {
-  tamas.push(new Tama(jikix,jikiy,jikiangle,shotpower));
+  let timer=50;
+  if (stagetimer<=0)timer=10;
+  tamas.push(new Tama(jikix,jikiy,jikiangle,shotpower,timer));
   switch(power){
     case 4:
-      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/6,shotpower));
+      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/6,shotpower,timer));
     case 3:
-      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/6,shotpower));
+      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/6,shotpower,timer));
     case 2:
-      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/12,shotpower));
+      tamas.push(new Tama(jikix,jikiy,jikiangle+Math.PI/12,shotpower,timer));
     case 1:
-      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/12,shotpower));
+      tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/12,shotpower,timer));
   }
 }
 function setblock() {
@@ -507,6 +549,10 @@ function setblock() {
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         setstage=true;
         clear=false;
+        stagetimer=5000;
+        maxstagetimer=5000;
+        grav=1;
+        world.gravity.y=grav;
       }
     }
   }
@@ -553,13 +599,12 @@ console.log(type,get);
       }
     break;
     case 3://回復アイテム
-      jikihp=jikihp+30;
-      if (get)jikihp=jikihp+20;//直接獲得した時回復量UP
-      if (jikihp>100){//余剰回復分をスコアに換算してhp100に補正
-        score=score+2*(jikihp-100);
-        jikihp=100;
+      jiki.body.hp=jiki.body.hp+30;
+      if (get)jiki.body.hp=jiki.body.hp+20;//直接獲得した時回復量UP
+      if (jiki.body.hp>100){//余剰回復分をスコアに換算してhp100に補正
+        score=score+2*(jiki.body.hp-100);
+        jiki.body.hp=100;
       }
-      jiki.body.hp=jikihp;
     break;
     case 4://バリアアイテム
       if (barrier||invincible>0){//バリアアイテム待機中もしくは効果時間中はスコアに変換
@@ -707,7 +752,7 @@ class Shield {
 }
 class Tama {
   //　コンストラクタ宣言
-  constructor(x, y,ang,fce){
+  constructor(x, y,ang,fce,time){
     this.power=fce;
     let optisons = {
       target:false,
@@ -729,7 +774,7 @@ class Tama {
       isStatic: false,
     };
     this.r = 10;
-    this.timer=50;
+    this.timer=time;
     this.body = Bodies.circle(jikix, jikiy, this.r, optisons);
     Composite.add(world, this.body);
   }
