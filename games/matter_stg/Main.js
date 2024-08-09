@@ -19,12 +19,12 @@ blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテ�
 bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
 let wall_left, wall_right, wall_top;
+let jiki,boss;
 let stage = 1;
 let substage = 1;
 let maxstagetimer = 0;
 let stagetimer = 0;
 let bossstage = false;
-let bosshp = 0;
 let bossrage = 0;
 let bossstan = 0;
 let setstage = true;
@@ -157,7 +157,7 @@ const init = () => {
               misstimer=120;
               zanki--;
               if(zanki<0)gameover=true;
-            }else if(!pair.bodyA.jiki){
+            }else if(!pair.bodyA.jiki&&!pair.bodyA.boss){
               Body.setStatic(pair.bodyA, false);
               Body.setMass(pair.bodyA,pair.bodyA.massset);
               pair.bodyA.target=false;
@@ -166,6 +166,8 @@ const init = () => {
               let refrectangle=pair.bodyB.angle+blockangle*2;
               Body.setVelocity( pair.bodyB,{x: -Math.cos(refrectangle)*pair.bodyB.speed*0.8, y: Math.sin(refrectangle)*pair.bodyB.speed*0.8});
               dropchance(pair.bodyA.position.x,pair.bodyA.position.y);
+            }else if(pair.bodyA.boss){
+              clear=true;
             }
           }
          }
@@ -198,7 +200,7 @@ const init = () => {
               misstimer=120;
               zanki--;
               if(zanki<0)gameover=true;
-            }else if(!pair.bodyA.jiki){
+            }else if(!pair.bodyA.jiki&&!pair.bodyB.boss){
               Matter.Body.setStatic(pair.bodyB, false);
               Body.setMass(pair.bodyB,pair.bodyB.massset);
               pair.bodyB.target=false;
@@ -207,10 +209,12 @@ const init = () => {
               let refrectangle=pair.bodyA.angle+blockangle*2;
               Body.setVelocity( pair.bodyA,{x: -Math.cos(refrectangle)*pair.bodyA.speed/2, y: Math.sin(refrectangle)*pair.bodyA.speed/2});
               dropchance(pair.bodyB.position.x,pair.bodyB.position.y);
+            }else if(pair.bodyB.boss){
+              clear=true;
             }
           }
-          }
         }
+      }
     });
   });
 
@@ -255,8 +259,8 @@ const init = () => {
       world.gravity.y=grav;
       invincible=120;
     }else if(clear&&!gameover){
-      setblock();
       substage++;
+      setblock();
       cleartext.removeFromWorld();
     }
     ischarge=false;
@@ -398,7 +402,7 @@ function draw() {
     }
   }
   // console.log(blocks.length);
-  if (blocks.length==0){
+  if (blocks.length==0&&!bossstage){
     setstage=false;
     if(tamas.length==0&&!clear){
       clear=true;
@@ -438,17 +442,35 @@ if(scharge<150)scharge++;
   context.fillText(String(stage)+"-"+(substage), 1020, 80);
   if(!bossstage){
     context.beginPath();
-    context.arc(1000, 200, 80, 0,Math.PI*2, false);
+    context.arc(1000, 170, 80, 0,Math.PI*2, false);
     context.fillStyle = "green";
     context.fill();
     context.closePath();
     context.beginPath();
-    context.moveTo(1000,200);
-    context.arc(1000, 200, 80, -Math.PI/2,(maxstagetimer-stagetimer)/maxstagetimer*Math.PI*2-Math.PI/2, false);
-    context.lineTo(1000,200);
+    context.moveTo(1000,170);
+    context.arc(1000, 170, 80, -Math.PI/2,(maxstagetimer-stagetimer)/maxstagetimer*Math.PI*2-Math.PI/2, false);
+    context.lineTo(1000,170);
     context.fillStyle = "red";
     context.fill();
     context.closePath();
+  }else{
+    context.beginPath();
+    context.rect(850, 90, 300,40 );
+    context.strokeStyle = "red";
+    context.stroke();
+    context.fillStyle = "red";
+    context.fill();
+    context.closePath();
+    if(boss.body.hp>=0){
+      context.beginPath();
+      context.rect(850, 90, boss.body.hp/boss.body.hpmax*300,40 );
+      context.strokeStyle = "green";
+      context.stroke();
+      context.fillStyle = "green";
+      context.fill();
+      context.closePath();
+    }
+    
   }
   context.fillStyle = "black";
   context.fillText("Score", 850, 360);
@@ -519,7 +541,7 @@ function restart() {
   score=0;
   extend=1;
   power=0;
-  scharge=300;
+  scharge=150;
   gameover=false;
 }
 
@@ -555,6 +577,10 @@ function setblock() {
         world.gravity.y=grav;
       }
     }
+    if(substage==4){
+      boss=new Boss(300,stage);
+      bossstage=true;
+    }
   }
 }
 function clearblock() {
@@ -584,7 +610,6 @@ function dropchance(x, y){
   }
 }
 function getitem(type, get){
-console.log(type,get);
   if (get)score=score+50;
   switch(type){
     case 1://スコアアイテム
@@ -712,8 +737,38 @@ class Jiki {
       },
       isStatic: true,
     };
-    this.color = "blue";
     this.body = Bodies.trapezoid(x, y,20,30,0.6,optisons);
+    Composite.add(world, this.body);
+  }
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
+class Boss {
+  //　コンストラクタ宣言
+  constructor(hp,type){
+    let optisons = {
+      target:true,
+      boss:true,
+      restitution: 1,
+      hp:hp,
+      hpmax:hp,
+      type:type,
+      friction: 0,
+      density: 1,
+      angle: 0,
+      render: {
+        fillStyle: "#ff69b4",
+//        sprite: {
+//          texture:'./res/jiki_inv.png'
+//        }
+      },
+      collisionFilter: {
+        category: bossCategory
+      },
+      isStatic: true,
+    };
+    this.body = Bodies.rectangle(400, 70,20,30,optisons);
     Composite.add(world, this.body);
   }
   removeFromWorld() {
