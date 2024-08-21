@@ -26,6 +26,12 @@ let maxstagetimer = 0;
 let stagetimer = 0;
 let bossstage = false;
 let bossrage = 0;
+let bossmove = 0;
+let bossmovecheck = false;
+let bossmovemax = 0;
+var bossmovet = [0,0];
+let bosswait = 0;
+let bosswaitmax = 0;
 let bossstan = 0;
 let setstage = true;
 let grav=1;
@@ -46,6 +52,7 @@ let refrectwait = 50;
 let zanki = 3;
 let respawnwait = 0;
 let clear = true;
+let clearMainstage=false;
 let miss = false;
 let misstimer = 0;
 let gameover = false;
@@ -86,7 +93,7 @@ const init = () => {
     options: {
       width: WIDTH,   //横幅は制限する
       height: height, //キャンバスの高さに合わせる
-      showIds: true,  //ID番号の表示を許可
+      showIds: false,  
       wireframes: false,
     }
   });
@@ -211,6 +218,9 @@ const init = () => {
               dropchance(pair.bodyB.position.x,pair.bodyB.position.y);
             }else if(pair.bodyB.boss){
               clear=true;
+              clearMainstage=true;
+              invincible=3000;
+              jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
             }
           }
         }
@@ -258,10 +268,14 @@ const init = () => {
       grav=1;
       world.gravity.y=grav;
       invincible=120;
-    }else if(clear&&!gameover){
+    }else if(clear&&!gameover&&!clearMainstage){
       substage++;
       setblock();
       cleartext.removeFromWorld();
+    }else if(clearMainstage){
+      substage=1;
+      stage++;
+
     }
     ischarge=false;
   });
@@ -328,13 +342,25 @@ function main() {
       world.gravity.y=grav;
     }
   }
+  if(bossstage){
+    if(stage==1){
+      bossrage=bossrage+0.01;
+      if(bossrage<0)bossrage=0;
+      if(bossrage>=100){
+        bossrage=0;
+
+      }
+    }
+  }
     
-  if (ischarge&&chargepower<50){
+  if (ischarge&&chargepower!=50){
     chargepower++;
+    if(chargepower>50)chargepower=50;
   }
   extendcheck();
   move();
   draw();
+  if (bossstage)bossmv();
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
@@ -367,6 +393,29 @@ function move() {
   //自機の向きをマウスカーソルの方向にする処理
   jikiangle = Math.atan2(mousey-jikiy,mousex-jikix)
   Matter.Body.setAngle(jiki.body,jikiangle+Math.PI/2, [updateVelocity=false]);//90度分補正
+}
+
+function bossmv() {
+//ボスの移動や待機の処理を行う
+if (bossmove>0){
+  Matter.Body.setPosition(boss.body, {x:boss.body.position.x+(bossmovet[0]-boss.body.position.x)/bossmove,y:boss.body.position.y+(bossmovet[1]-boss.body.position.y)/bossmove});
+  bossmove--;
+  if(bossmove==0)bosswait=bosswaitmax;
+}else{
+  bosswait--;
+  if(bosswait<=0){
+    bossmove=bossmovemax;
+    if(boss.body.position.x<130){
+      bossmovet[0]=30+Math.random()*(boss.body.position.x+70);
+    }else if(boss.body.position.x>700){
+      bossmovet[0]=boss.body.position.x-100+Math.random()*(900-boss.body.position.x);
+    }else{
+      bossmovet[0]=boss.body.position.x-100+Math.random()*200;
+    }
+    bossmovet[1]=50+Math.random()*50
+  }
+}
+
 }
 
 //　描画関数
@@ -470,6 +519,14 @@ if(scharge<150)scharge++;
       context.fill();
       context.closePath();
     }
+    context.beginPath();
+    context.strokeStyle = "#008080";
+    context.rect(850, 130, bossrage*3,30 );
+    context.stroke();
+    context.fillStyle = "#008080";
+    context.fill();
+    context.closePath();
+  
     
   }
   context.fillStyle = "black";
@@ -565,7 +622,7 @@ function setblock() {
   switch(stage){
     case 1:
     for(i=1;i<=3;i++){
-      for(y=0;y<5;y++){
+      for(y=0;y<4+substage;y++){
         if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
         if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
@@ -575,11 +632,16 @@ function setblock() {
         maxstagetimer=5000;
         grav=1;
         world.gravity.y=grav;
+        bossstage=false;
       }
     }
     if(substage==4){
       boss=new Boss(300,stage);
       bossstage=true;
+      bosswaitmax=100;
+      bossmovemax=100
+      bosswait=bosswaitmax;
+      bossmove=0;
     }
   }
 }
@@ -753,7 +815,7 @@ class Boss {
       restitution: 1,
       hp:hp,
       hpmax:hp,
-      type:type,
+      bosstype:type,
       friction: 0,
       density: 1,
       angle: 0,
@@ -920,22 +982,22 @@ class Gameovertext{
 }
 //キー入力
 function keyDownHandler(e) {
-  if (e.key === 'd') keyr = true;
-  if (e.key === 'w') keyu = true;
-  if (e.key === 's') keyd = true;
-  if (e.key === 'a') keyl = true;
+  if (e.key === 'd'||e.key === 'ArrowRight') keyr = true;
+  if (e.key === 'w'||e.key === 'ArrowUp') keyu = true;
+  if (e.key === 's'||e.key === 'ArrowDown') keyd = true;
+  if (e.key === 'a'||e.key === 'ArrowLeft') keyl = true;
 }
 function keyUpHandler(e) {
-  if (e.key === 'd') {
+  if (e.key === 'd'||e.key === 'ArrowRight') {
     keyr = false;
   }
-  if (e.key === 'w') {
+  if (e.key === 'w'||e.key === 'ArrowUp') {
     keyu = false;
   }
-  if (e.key === 's') {
+  if (e.key === 's'||e.key === 'ArrowDown') {
     keyd = false;
   }
-  if (e.key === 'a') {
+  if (e.key === 'a'||e.key === 'ArrowLeft') {
     keyl = false;
   }
 }
