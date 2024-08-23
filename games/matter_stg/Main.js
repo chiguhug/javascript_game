@@ -18,6 +18,7 @@ jikiCategory = 0x0002, // 自機オブジェクトのカテゴリ
 blockCategory = 0x0004, // 破壊可能ブロックオブジェクトのカテゴリ
 bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
+const HEIGHT = 600;
 let wall_left, wall_right, wall_top;
 let jiki,boss;
 let stage = 1;
@@ -32,6 +33,8 @@ let bossmovemax = 0;
 var bossmovet = [0,0];
 let bosswait = 0;
 let bosswaitmax = 0;
+let bossshotwait = 0;
+let bossshotinterval = 0;
 let bossstan = 0;
 let setstage = true;
 let grav=1;
@@ -45,7 +48,7 @@ let keyr = false;
 let keyl = false;
 let keyu = false;
 let keyd = false;
-let power = 0;
+let power = 4;
 let ischarge=false;
 let chargepower=0;
 let refrectwait = 50;
@@ -63,14 +66,11 @@ let shielddur=0;
 let scharge = 150;
 let invincible = 120;
 let retflag = false;
-let collision_id = null;
 let tact = 0;
 var blocks = [];
 var tamas = [];
 var atacks = [];
 var items = [];
-let cleartext=null;
-let gameovertext=null;
 document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 const init = () => {
@@ -91,8 +91,8 @@ const init = () => {
     canvas: world_canvas,
     engine: engine,
     options: {
-      width: WIDTH,   //横幅は制限する
-      height: height, //キャンバスの高さに合わせる
+      width: WIDTH,   //mattar用キャンバスの横幅に合わせる
+      height: HEIGHT, //mattar用キャンバスの高さに合わせる
       showIds: false,  
       wireframes: false,
     }
@@ -140,6 +140,11 @@ const init = () => {
           }
         }else if(pair.bodyA.shield){
           Body.setVelocity( pair.bodyB,{x: Math.cos(pair.bodyA.angle-Math.PI/2)*30, y: Math.sin(pair.bodyA.angle-Math.PI/2)*30});
+          pair.bodyB.damegeRate=2;
+          if(pair.bodyB.bosstama){
+            pair.bodyB.collisionFilter.mask=commonCategory|bossCategory|jikiCategory;
+            pair.bodyB.damegeRate=4;
+          }
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier)
             {barrier=false;
@@ -170,6 +175,7 @@ const init = () => {
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
               Body.setVelocity( pair.bodyA,{x: Math.cos(-blockangle)*pair.bodyB.speed*0.8, y: Math.sin(-blockangle)*pair.bodyB.speed*0.8});
+              pair.bodyA.collisionFilter.category=1;
               let refrectangle=pair.bodyB.angle+blockangle*2;
               Body.setVelocity( pair.bodyB,{x: -Math.cos(refrectangle)*pair.bodyB.speed*0.8, y: Math.sin(refrectangle)*pair.bodyB.speed*0.8});
               dropchance(pair.bodyA.position.x,pair.bodyA.position.y);
@@ -184,6 +190,11 @@ const init = () => {
 
         }else if(pair.bodyB.shield){
           Body.setVelocity( pair.bodyA,{x: Math.cos(pair.bodyB.angle-Math.PI/2)*30, y: Math.sin(pair.bodyB.angle-Math.PI/2)*30});
+          pair.bodyA.damegeRate=2;
+          if(pair.bodyA.bosstama){
+            pair.bodyA.collisionFilter.mask=commonCategory|bossCategory|jikiCategory;
+            pair.bodyA.damegeRate=4;
+          }
         }else if (pair.bodyB.target) {
           if(pair.bodyB.jiki&&barrier)
             {barrier=false;
@@ -213,6 +224,7 @@ const init = () => {
               pair.bodyB.target=false;
               pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
               Body.setVelocity( pair.bodyB,{x: Math.cos(-blockangle)*pair.bodyA.speed*0.8, y: Math.sin(-blockangle)*pair.bodyA.speed*0.8});
+              pair.bodyB.collisionFilter.category=1;
               let refrectangle=pair.bodyA.angle+blockangle*2;
               Body.setVelocity( pair.bodyA,{x: -Math.cos(refrectangle)*pair.bodyA.speed/2, y: Math.sin(refrectangle)*pair.bodyA.speed/2});
               dropchance(pair.bodyB.position.x,pair.bodyB.position.y);
@@ -228,11 +240,11 @@ const init = () => {
     });
   });
 
-  world_canvas.addEventListener("contextmenu", event => {
+  canvas.addEventListener("contextmenu", event => {
     event.preventDefault();
   });
   
-  world_canvas.addEventListener("mousedown", event => {
+  canvas.addEventListener("mousedown", event => {
 //    console.log(event.button);//event.buttonが0：左クリック　2右クリック　1ホイールクリック
     if(!miss&&setstage&&!clear&&event.button==0){
       ischarge=true;
@@ -244,7 +256,7 @@ const init = () => {
     }
     });
 
-  world_canvas.addEventListener("mouseup", event => {
+  canvas.addEventListener("mouseup", event => {
     if(!miss&&setstage&&!clear&&ischarge){
       shot(chargepower/2000);
     }else if(gameover&&misstimer==0){
@@ -258,7 +270,6 @@ const init = () => {
       invincible=120;
       setblock();
       substage++;
-      cleartext.removeFromWorld();
     }else if(miss&&misstimer==0&&!gameover){
       jikix=400;
       jikiy=550;
@@ -271,7 +282,6 @@ const init = () => {
     }else if(clear&&!gameover&&!clearMainstage){
       substage++;
       setblock();
-      cleartext.removeFromWorld();
     }else if(clearMainstage){
       substage=1;
       stage++;
@@ -310,7 +320,7 @@ const init = () => {
   // });
 
 // マウスカーソルの位置の取得
-  world_canvas.addEventListener("mousemove", event => {
+  canvas.addEventListener("mousemove", event => {
     mousey=event.offsetY;
     mousex=event.offsetX;
   });
@@ -342,13 +352,18 @@ function main() {
       world.gravity.y=grav;
     }
   }
-  if(bossstage){
+  if(bossstage&&!clear){
+    bossshotwait--;
     if(stage==1){
       bossrage=bossrage+0.01;
       if(bossrage<0)bossrage=0;
       if(bossrage>=100){
         bossrage=0;
 
+      }
+      if(bossshotwait<=0){
+        bossshot(boss.body.position.x,boss.body.position.y);
+        bossshotwait=bossshotinterval;
       }
     }
   }
@@ -360,7 +375,7 @@ function main() {
   extendcheck();
   move();
   draw();
-  if (bossstage)bossmv();
+  if (bossstage&&!clear)bossmv();
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
@@ -405,10 +420,10 @@ if (bossmove>0){
   bosswait--;
   if(bosswait<=0){
     bossmove=bossmovemax;
-    if(boss.body.position.x<130){
-      bossmovet[0]=30+Math.random()*(boss.body.position.x+70);
-    }else if(boss.body.position.x>700){
-      bossmovet[0]=boss.body.position.x-100+Math.random()*(900-boss.body.position.x);
+    if(boss.body.position.x<160){
+      bossmovet[0]=60+Math.random()*(boss.body.position.x+40);
+    }else if(boss.body.position.x>670){
+      bossmovet[0]=boss.body.position.x-100+Math.random()*(870-boss.body.position.x);
     }else{
       bossmovet[0]=boss.body.position.x-100+Math.random()*200;
     }
@@ -422,7 +437,7 @@ if (bossmove>0){
 function draw() {
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
-    tamas[i].timer--
+    tamas[i].timer--;
     if (tamas[i].timer==0) {
       tamas[i].body.collisionFilter.mask=commonCategory|blockCategory|bossCategory|jikiCategory;
     }
@@ -454,9 +469,8 @@ function draw() {
   if (blocks.length==0&&!bossstage){
     setstage=false;
     if(tamas.length==0&&!clear){
-      clear=true;
       if(miss&&zanki<0){}else{
-        cleartext=new Cleartext();
+        clear=true;
         }
     }
   }
@@ -467,11 +481,9 @@ function draw() {
     if(misstimer==0){
       jiki.removeFromWorld();
       power=Math.floor(power/2);
-      if(gameover){
-        gameovertext=new Gameovertext();
       }
     }
-  }
+  
 //シールドの持続時間管理と効果終了処理
 if(shielddur>0){
   shielddur--;
@@ -481,6 +493,18 @@ console.log
   }
 }
 if(scharge<150)scharge++;
+
+context.clearRect(0,0,WIDTH,HEIGHT);
+if (clear){
+  clearimg = new Image();
+  clearimg.src = "res/text_gameclear_e.png";
+  context.drawImage(clearimg, 180, 180);
+}
+if (gameover&&misstimer==0){
+  gameoverimg = new Image();
+  gameoverimg.src = "res/text_gameover_e.png";
+  context.drawImage(gameoverimg, 180, 180);
+}
 
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
@@ -540,6 +564,7 @@ if(scharge<150)scharge++;
   context.fillStyle = "red";
   context.fill();
   context.closePath();
+
   context.beginPath();
   if(zanki>=0&&zanki<=5){
     context.beginPath();
@@ -583,9 +608,9 @@ if(scharge<150)scharge++;
     context.closePath();
 }
 function restart() {
-  gameovertext.removeFromWorld();
   clearblock();
   cleartama();
+  clearitem();
   jikix=400;
   jikiy=550;
   jiki = new Jiki(jikix,jikiy);
@@ -600,6 +625,31 @@ function restart() {
   power=0;
   scharge=150;
   gameover=false;
+}
+
+function stageclear() {
+  boss.removeFromWorld();
+  clearblock();
+  cleartama();
+  clearitem();
+  jikix=400;
+  jikiy=550;
+  jiki = new Jiki(jikix,jikiy);
+  miss=false;
+  invincible=120;
+  substage=1;
+  bossstage=false;
+  setblock();
+  zanki=3;
+  score=0;
+  extend=1;
+  power=0;
+  scharge=150;
+  gameover=false;
+}
+function nextstage() {
+  stage++;
+  
 }
 
 //自機の弾発射処理
@@ -617,6 +667,10 @@ function shot(shotpower) {
     case 1:
       tamas.push(new Tama(jikix,jikiy,jikiangle-Math.PI/12,shotpower,timer));
   }
+}
+//ボスの弾発射処理
+function bossshot(x,y) {
+  tamas.push(new Bosstama(x,y,(Math.random()*6)/6*Math.PI,0.05));
 }
 function setblock() {
   switch(stage){
@@ -642,6 +696,8 @@ function setblock() {
       bossmovemax=100
       bosswait=bosswaitmax;
       bossmove=0;
+      bossshotinterval=200;
+      bossshotwait=bossshotinterval;
     }
   }
 }
@@ -656,6 +712,12 @@ function cleartama() {
     tama.removeFromWorld();
   });
   tamas.splice(0,tamas.length);
+}
+function clearitem() {
+  items.forEach(function(item) {
+    item.removeFromWorld();
+  });
+  items.splice(0,items.length);
 }
 function dropchance(x, y){
   let rate = Math.random()*100;  //アイテムの抽選
@@ -906,6 +968,45 @@ class Tama {
     World.remove(world, this.body);
   }
 }
+class Bosstama {
+  //　コンストラクタ宣言
+  constructor(x, y,ang,fce){
+    this.power=fce;
+    let optisons = {
+      target:false,
+      jiki:false,
+      shield:false,
+      bosstama:true,
+      damegeRate:6,
+      restitution: 0.8,
+      friction: 0,
+      frictionAir: 0,
+      angle: ang,
+      render: {
+        fillStyle: "red"
+      },
+      collisionFilter: {
+        category: commonCategory,
+        mask:commonCategory|jikiCategory
+      },
+      force:{x:Math.cos(ang)*fce,y:Math.sin(ang)*fce},
+      isStatic: false,
+    };
+    this.timer=0;
+    this.body = Bodies.circle(x, y, 20, optisons);
+    Composite.add(world, this.body);
+  }
+  //　ボールが画面外にはみ出たかを判定するメソッド
+  isOffScreen() {
+    let pos = this.body.position;
+//    console.log(pos,this.body.speed,this.body);
+    return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+  }
+  
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
 class Item {
   //　コンストラクタ宣言
   constructor(x, y, type,img){
@@ -932,7 +1033,7 @@ class Item {
       isStatic: false,
       isSensor: true,
     };
-    this.body = Bodies.circle(x, y, 40, optisons);
+    this.body = Bodies.circle(x, y, 60, optisons);
     Composite.add(world, this.body);
   }
   isOffScreen() {
@@ -944,60 +1045,18 @@ class Item {
   }
 }
 
-class Cleartext{
-  constructor(){
-    let optisons = {
-      isStatic: true,
-      render: {
-        fillStyle: "#2020ff",
-        sprite: {
-          texture:'./res/text_gameclear_e.png'
-        }
-      }
-    }
-    this.body = Bodies.circle(400, 300, 10, optisons);
-    Composite.add(world, this.body);
-  }
-  removeFromWorld() {
-    World.remove(world, this.body);
-  }
-}
-class Gameovertext{
-  constructor(){
-    let optisons = {
-      isStatic: true,
-      render: {
-        fillStyle: "#2020ff",
-        sprite: {
-          texture:'./res/text_gameover_e.png'
-        }
-      }
-    }
-    this.body = Bodies.circle(400, 300, 10, optisons);
-    Composite.add(world, this.body);
-  }
-  removeFromWorld() {
-    World.remove(world, this.body);
-  }
-}
 //キー入力
 function keyDownHandler(e) {
   if (e.key === 'd'||e.key === 'ArrowRight') keyr = true;
   if (e.key === 'w'||e.key === 'ArrowUp') keyu = true;
   if (e.key === 's'||e.key === 'ArrowDown') keyd = true;
   if (e.key === 'a'||e.key === 'ArrowLeft') keyl = true;
+//  if (e.key === 'p') render.options.enabled = false;
 }
 function keyUpHandler(e) {
-  if (e.key === 'd'||e.key === 'ArrowRight') {
-    keyr = false;
-  }
-  if (e.key === 'w'||e.key === 'ArrowUp') {
-    keyu = false;
-  }
-  if (e.key === 's'||e.key === 'ArrowDown') {
-    keyd = false;
-  }
-  if (e.key === 'a'||e.key === 'ArrowLeft') {
-    keyl = false;
-  }
+  if (e.key === 'd'||e.key === 'ArrowRight') keyr = false;
+  if (e.key === 'w'||e.key === 'ArrowUp')    keyu = false;
+  if (e.key === 's'||e.key === 'ArrowDown')  keyd = false;
+  if (e.key === 'a'||e.key === 'ArrowLeft')  keyl = false;
+//  if (e.key === 'p') render.options.enabled = true;
 }
