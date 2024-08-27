@@ -56,6 +56,7 @@ let zanki = 3;
 let respawnwait = 0;
 let clear = true;
 let clearMainstage=false;
+let clearwait = 0;
 let miss = false;
 let misstimer = 0;
 let gameover = false;
@@ -181,6 +182,10 @@ const init = () => {
               dropchance(pair.bodyA.position.x,pair.bodyA.position.y);
             }else if(pair.bodyA.boss){
               clear=true;
+              clearMainstage=true;
+              invincible=3000;
+              jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
+              clearwait=200;
             }
           }
          }
@@ -233,6 +238,7 @@ const init = () => {
               clearMainstage=true;
               invincible=3000;
               jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
+              clearwait=200;
             }
           }
         }
@@ -279,13 +285,18 @@ const init = () => {
       grav=1;
       world.gravity.y=grav;
       invincible=120;
-    }else if(clear&&!gameover&&!clearMainstage){
+    }else if(clear&&!gameover&&!clearMainstage&&clearwait<=0){
       substage++;
       setblock();
-    }else if(clearMainstage){
+    }else if(clearMainstage&&clearwait<=0){
+      score=score+stage*1000+jiki.body.hp*20;
+      extendcheck();
       substage=1;
       stage++;
-
+      invincible=20;
+      jiki.body.hp=100;
+      boss.removeFromWorld();
+      setblock();
     }
     ischarge=false;
   });
@@ -367,7 +378,7 @@ function main() {
       }
     }
   }
-    
+  if (clearwait>0)clearwait--;
   if (ischarge&&chargepower!=50){
     chargepower++;
     if(chargepower>50)chargepower=50;
@@ -471,6 +482,7 @@ function draw() {
     if(tamas.length==0&&!clear){
       if(miss&&zanki<0){}else{
         clear=true;
+        clearwait=50;
         }
     }
   }
@@ -488,7 +500,6 @@ function draw() {
 if(shielddur>0){
   shielddur--;
   if(shielddur==0&&shield!=null){
-console.log
     shield.removeFromWorld();
   }
 }
@@ -499,6 +510,18 @@ if (clear){
   clearimg = new Image();
   clearimg.src = "res/text_gameclear_e.png";
   context.drawImage(clearimg, 180, 180);
+}
+if(clearMainstage&&clearwait==100){
+  clearblock();
+  cleartama();
+}
+if(clearMainstage&&clearwait<=100){
+  context.fillStyle = "white";
+  context.font = "48px serif";
+  context.fillText("STAGEBONAS    "+stage*1000, 150, 360);
+  if(clearwait<=50){
+    context.fillText("LIFEBONAS       "+Math.floor(jiki.body.hp*20), 150, 440);
+  }
 }
 if (gameover&&misstimer==0){
   gameoverimg = new Image();
@@ -512,7 +535,7 @@ if (gameover&&misstimer==0){
   context.fillStyle = "black";
   context.font = "48px serif";
   context.fillText("STAGE", 850, 80);
-  context.fillText(String(stage)+"-"+(substage), 1020, 80);
+  context.fillText(stage+"-"+substage, 1020, 80);
   if(!bossstage){
     context.beginPath();
     context.arc(1000, 170, 80, 0,Math.PI*2, false);
@@ -556,7 +579,7 @@ if (gameover&&misstimer==0){
   context.fillStyle = "black";
   context.fillText("Score", 850, 360);
   context.font = "40px serif";
-  context.fillText(String(Math.floor(score)), 980, 360);
+  context.fillText(Math.floor(score), 980, 360);
   context.beginPath();
   context.rect(850, 420, 300,40 );
   context.strokeStyle = "red";
@@ -627,30 +650,6 @@ function restart() {
   gameover=false;
 }
 
-function stageclear() {
-  boss.removeFromWorld();
-  clearblock();
-  cleartama();
-  clearitem();
-  jikix=400;
-  jikiy=550;
-  jiki = new Jiki(jikix,jikiy);
-  miss=false;
-  invincible=120;
-  substage=1;
-  bossstage=false;
-  setblock();
-  zanki=3;
-  score=0;
-  extend=1;
-  power=0;
-  scharge=150;
-  gameover=false;
-}
-function nextstage() {
-  stage++;
-  
-}
 
 //自機の弾発射処理
 function shot(shotpower) {
@@ -675,13 +674,16 @@ function bossshot(x,y) {
 function setblock() {
   switch(stage){
     case 1:
+    case 2:
+    case 4:
     for(i=1;i<=3;i++){
       for(y=0;y<4+substage;y++){
-        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,light,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,middle,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*256+144,heavy,Math.floor(Math.random()*3)+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+250,light,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*150+200,middle,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*150+150,heavy,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
         setstage=true;
         clear=false;
+        clearMainstage=false;
         stagetimer=5000;
         maxstagetimer=5000;
         grav=1;
