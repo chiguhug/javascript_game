@@ -21,6 +21,7 @@ const WIDTH  = 830;
 const HEIGHT = 600;
 let wall_left, wall_right, wall_top;
 let jiki,boss;
+let usecontext=false;
 let stage = 1;
 let substage = 1;
 let maxstagetimer = 0;
@@ -108,9 +109,9 @@ const init = () => {
   jiki = new Jiki(jikix,jikiy);
   
   //ブロックの種類を設定
-  heavy=new BlockType(2,"#C83232","#800000",50);
-  middle=new BlockType(1.6,"#32D232","#008000",30);
-  light=new BlockType(1.2,"#78A0FF","#0075AD",10);
+  heavy=new BlockType(2,"#C83232","#800000",100);
+  middle=new BlockType(1.6,"#32D232","#008000",60);
+  light=new BlockType(1.2,"#78A0FF","#0075AD",30);
   
   // 物理世界を更新
   const runner = Runner.create();
@@ -247,7 +248,9 @@ const init = () => {
   });
 
   canvas.addEventListener("contextmenu", event => {
-    event.preventDefault();
+    if(!usecontext){
+      event.preventDefault();
+    }
   });
   
   canvas.addEventListener("mousedown", event => {
@@ -476,7 +479,7 @@ function draw() {
       i++;
     }
   }
-  // console.log(blocks.length);
+  //ボスステージ以外では、ブロックと弾が全て消えれば(画面外に出れば)クリア判定
   if (blocks.length==0&&!bossstage){
     setstage=false;
     if(tamas.length==0&&!clear){
@@ -493,8 +496,8 @@ function draw() {
     if(misstimer==0){
       jiki.removeFromWorld();
       power=Math.floor(power/2);
-      }
     }
+  }
   
 //シールドの持続時間管理と効果終了処理
 if(shielddur>0){
@@ -684,8 +687,8 @@ function setblock() {
         setstage=true;
         clear=false;
         clearMainstage=false;
-        stagetimer=5000;
-        maxstagetimer=5000;
+        maxstagetimer=4000+stage*1000;
+        stagetimer=maxstagetimer;
         grav=1;
         world.gravity.y=grav;
         bossstage=false;
@@ -701,6 +704,33 @@ function setblock() {
       bossshotinterval=200;
       bossshotwait=bossshotinterval;
     }
+    break;
+    case 3:
+      for(i=1;i<=3;i++){
+        for(y=0;y<8+substage;y++){
+          if(i==1)blocks.push(new Block(y*742/(9+substage)+100,300,light,4,30,0));
+          if(i==2)blocks.push(new Block(y*742/(9+substage)+100,250,middle,4,30,0));
+          if(i==3)blocks.push(new Block(y*742/(9+substage)+100,200,heavy,4,30,0));
+          setstage=true;
+          clear=false;
+          clearMainstage=false;
+          maxstagetimer=4000+stage*1000;
+          stagetimer=maxstagetimer;
+          grav=1;
+          world.gravity.y=grav;
+          bossstage=false;
+        }
+      }
+      if(substage==4){
+        boss=new Boss(300,stage);
+        bossstage=true;
+        bosswaitmax=100;
+        bossmovemax=100
+        bosswait=bosswaitmax;
+        bossmove=0;
+        bossshotinterval=200;
+        bossshotwait=bossshotinterval;
+      }
   }
 }
 function clearblock() {
@@ -811,7 +841,7 @@ class Block {
       jiki:false,
       shield:false,
       damegeRate:1,
-      hp:type.hp,
+      hp:type.hp*(0.5+stage/2),
       restitution: 1,
       friction: 0,
       massset: type.mass,
@@ -1053,12 +1083,15 @@ function keyDownHandler(e) {
   if (e.key === 'w'||e.key === 'ArrowUp') keyu = true;
   if (e.key === 's'||e.key === 'ArrowDown') keyd = true;
   if (e.key === 'a'||e.key === 'ArrowLeft') keyl = true;
+  if (e.code === 'ShiftRight') usecontext = true;
 //  if (e.key === 'p') render.options.enabled = false;
+//console.log(e);
 }
 function keyUpHandler(e) {
   if (e.key === 'd'||e.key === 'ArrowRight') keyr = false;
   if (e.key === 'w'||e.key === 'ArrowUp')    keyu = false;
   if (e.key === 's'||e.key === 'ArrowDown')  keyd = false;
   if (e.key === 'a'||e.key === 'ArrowLeft')  keyl = false;
+  if (e.code === 'ShiftRight') usecontext = false;
 //  if (e.key === 'p') render.options.enabled = true;
 }
