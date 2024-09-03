@@ -27,15 +27,7 @@ let substage = 1;
 let maxstagetimer = 0;
 let stagetimer = 0;
 let bossstage = false;
-let bossrage = 0;
-let bossmove = 0;
-let bossmovecheck = false;
-let bossmovemax = 0;
 var bossmovet = [0,0];
-let bosswait = 0;
-let bosswaitmax = 0;
-let bossshotwait = 0;
-let bossshotinterval = 0;
 let bossstan = 0;
 let setstage = true;
 let grav=1;
@@ -367,20 +359,19 @@ function main() {
     }
   }
   if(bossstage&&!clear){
-    bossshotwait--;
-    if(stage==1){
-      bossrage=bossrage+0.01;
-      if(bossrage<0)bossrage=0;
-      if(bossrage>=100){
-        bossrage=0;
+    boss.body.rage=boss.body.rage+boss.body.ragetimer;
+    if(boss.body.rage<0)boss.body.rage=0;
+    if(boss.body.rage>=100){
 
-      }
-      if(bossshotwait<=0){
-        bossshot(boss.body.position.x,boss.body.position.y);
-        bossshotwait=bossshotinterval;
-      }
+      boss.body.rage=0;
+    }
+    boss.body.shotwait--;
+    if(boss.body.shotwait<=0){
+      bossshot(boss.body.position.x,boss.body.position.y);
+      boss.body.shotwait=boss.body.shotinterval;
     }
   }
+  
   if (clearwait>0)clearwait--;
   if (ischarge&&chargepower!=50){
     chargepower++;
@@ -426,14 +417,14 @@ function move() {
 
 function bossmv() {
 //ボスの移動や待機の処理を行う
-if (bossmove>0){
-  Matter.Body.setPosition(boss.body, {x:boss.body.position.x+(bossmovet[0]-boss.body.position.x)/bossmove,y:boss.body.position.y+(bossmovet[1]-boss.body.position.y)/bossmove});
-  bossmove--;
-  if(bossmove==0)bosswait=bosswaitmax;
+if (boss.body.move>0){
+  Matter.Body.setPosition(boss.body, {x:boss.body.position.x+(bossmovet[0]-boss.body.position.x)/boss.body.move,y:boss.body.position.y+(bossmovet[1]-boss.body.position.y)/boss.body.move});
+  boss.body.move--;
+  if(boss.body.move==0)boss.body.movewait=boss.body.movewaitmax;
 }else{
-  bosswait--;
-  if(bosswait<=0){
-    bossmove=bossmovemax;
+  boss.body.movewait--;
+  if(boss.body.movewait<=0){
+    boss.body.move=boss.body.movemax;
     if(boss.body.position.x<160){
       bossmovet[0]=60+Math.random()*(boss.body.position.x+40);
     }else if(boss.body.position.x>670){
@@ -571,7 +562,7 @@ if (gameover&&misstimer==0){
     }
     context.beginPath();
     context.strokeStyle = "#008080";
-    context.rect(850, 130, bossrage*3,30 );
+    context.rect(850, 130, boss.body.rage*3,30 );
     context.stroke();
     context.fillStyle = "#008080";
     context.fill();
@@ -698,7 +689,7 @@ function setblock() {
       boss=new Boss(300,stage);
       bossstage=true;
       bosswaitmax=100;
-      bossmovemax=100
+      bossmovemax=100;
       bosswait=bosswaitmax;
       bossmove=0;
       bossshotinterval=200;
@@ -909,6 +900,15 @@ class Boss {
       restitution: 1,
       hp:hp,
       hpmax:hp,
+      rage:0,
+      ragetimer:0.05,
+      ragerate:3,
+      move:0,
+      movewait:100,
+      movemax:100,
+      movewaitmax:100,
+      shotinterval:200,
+      shotwait:200,
       bosstype:type,
       friction: 0,
       density: 1,
@@ -946,7 +946,6 @@ class Shield {
 //        sprite: {
 //          texture:'./res/jiki_inv.png'
 //        }
-
       },
       collisionFilter: {
         category: jikiCategory
