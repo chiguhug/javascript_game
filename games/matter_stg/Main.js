@@ -72,7 +72,6 @@ const init = () => {
   canvas = document.getElementById("myCanvas");  //キャンバスの取得
   world_canvas = document.getElementById("worldCanvas");  //キャンバスの取得
   context = canvas.getContext("2d");
-  wcontext = world_canvas.getContext("2d");
   width = canvas.width;   //キャンバスの幅をセット
   height = canvas.height; //キャンバスの高さをセット
   
@@ -101,9 +100,9 @@ const init = () => {
   jiki = new Jiki(jikix,jikiy);
   
   //ブロックの種類を設定
-  heavy=new BlockType(2,"#C83232","#800000",100);
-  middle=new BlockType(1.6,"#32D232","#008000",60);
-  light=new BlockType(1.2,"#78A0FF","#0075AD",30);
+  heavy=new BlockType(0.02,"#C83232","#800000");
+  middle=new BlockType(0.012,"#32D232","#008000");
+  light=new BlockType(0.005,"#78A0FF","#0075AD");
   
   // 物理世界を更新
   const runner = Runner.create();
@@ -140,11 +139,11 @@ const init = () => {
             pair.bodyB.damegeRate=4;
           }
         }else if (pair.bodyA.target) {
-          if(pair.bodyA.jiki&&barrier)
-            {barrier=false;
-              invincible=180;
-              jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
-            }
+          if(pair.bodyA.jiki&&barrier){
+            barrier=false;
+            invincible=180;
+            jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
+          }
           if(!pair.bodyA.jiki||!invincible>0){
             let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
             let incidence=Math.atan2(pair.bodyB.position.y-pair.bodyB.positionPrev.y,pair.bodyB.position.x-pair.bodyB.positionPrev.x);
@@ -156,6 +155,10 @@ const init = () => {
             // console.log(blockangle,incidence,colangle,power,damege);
             // console.log(pair.bodyB.positionPrev,pair.bodyB.position);
           if(!pair.bodyA.jiki)score=score+damege;
+          if(pair.bodyA.boss){
+            pair.bodyA.rage=pair.bodyA.rage+pair.bodyA.ragerate*damege;
+            if(pair.bodyA.rage>100)pair.bodyA.rage=100;
+          }
           if(pair.bodyA.hp<=0){
             if(pair.bodyA.jiki&&!miss){
               miss=true;
@@ -165,7 +168,7 @@ const init = () => {
               if(zanki<0)gameover=true;
             }else if(!pair.bodyA.jiki&&!pair.bodyA.boss){
               Body.setStatic(pair.bodyA, false);
-              Body.setMass(pair.bodyA,pair.bodyA.massset);
+              Body.setDensity(pair.bodyA,pair.bodyA.densset);
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
               Body.setVelocity( pair.bodyA,{x: Math.cos(-blockangle)*pair.bodyB.speed*0.8, y: Math.sin(-blockangle)*pair.bodyB.speed*0.8});
@@ -209,6 +212,10 @@ const init = () => {
             if(damege<0)damege=0;
               pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
+          if(pair.bodyB.boss){
+            pair.bodyB.rage=pair.bodyB.rage+pair.bodyB.ragerate*damege;
+            if(pair.bodyB.rage>100)pair.bodyB.rage=100;
+          }
           if(pair.bodyB.hp<=0){
             if(pair.bodyB.jiki&&!miss){
               miss=true;
@@ -217,8 +224,8 @@ const init = () => {
               zanki--;
               if(zanki<0)gameover=true;
             }else if(!pair.bodyA.jiki&&!pair.bodyB.boss){
-              Matter.Body.setStatic(pair.bodyB, false);
-              Body.setMass(pair.bodyB,pair.bodyB.massset);
+              Body.setStatic(pair.bodyB, false);
+              Body.setDensity(pair.bodyB,pair.bodyB.densset);
               pair.bodyB.target=false;
               pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
               Body.setVelocity( pair.bodyB,{x: Math.cos(-blockangle)*pair.bodyA.speed*0.8, y: Math.sin(-blockangle)*pair.bodyA.speed*0.8});
@@ -359,15 +366,23 @@ function main() {
     }
   }
   if(bossstage&&!clear){
-    boss.body.rage=boss.body.rage+boss.body.ragetimer;
-    if(boss.body.rage<0)boss.body.rage=0;
-    if(boss.body.rage>=100){
-
-      boss.body.rage=0;
+    if(boss.body.rageact>0){
+      boss.body.rageact--;
+      rageaction();
+      if(boss.body.rageact==0)boss.body.rage=0;
+    }else{
+      boss.body.rage=boss.body.rage+boss.body.ragetimer;
+      if(boss.body.rage<0)boss.body.rage=0;
+      if(boss.body.rage>=100){
+        boss.body.rage=100;
+        boss.body.rageact=boss.body.rageactmax;
+      }
     }
     boss.body.shotwait--;
     if(boss.body.shotwait<=0){
-      bossshot(boss.body.position.x,boss.body.position.y);
+      for(i=0;i<boss.body.bosstype;i++){
+        bossshot(boss.body.position.x,boss.body.position.y);
+      }
       boss.body.shotwait=boss.body.shotinterval;
     }
   }
@@ -435,10 +450,15 @@ if (boss.body.move>0){
     bossmovet[1]=50+Math.random()*50
   }
 }
-
 }
-
-//　描画関数
+function rageaction() {
+  switch(boss.body.bosstype){
+    case 1:
+      
+      break;
+  }
+}
+  //　描画関数
 function draw() {
   //画面外に出た弾・ブロックの消滅
   for(i=0;i<tamas.length;){
@@ -477,7 +497,7 @@ function draw() {
       if(miss&&zanki<0){}else{
         clear=true;
         clearwait=50;
-        }
+      }
     }
   }
 
@@ -503,7 +523,7 @@ context.clearRect(0,0,WIDTH,HEIGHT);
 if (clear){
   clearimg = new Image();
   clearimg.src = "res/text_gameclear_e.png";
-  context.drawImage(clearimg, 180, 180);
+  context.drawImage(clearimg, 150, 160);
 }
 if(clearMainstage&&clearwait==100){
   clearblock();
@@ -512,9 +532,9 @@ if(clearMainstage&&clearwait==100){
 if(clearMainstage&&clearwait<=100){
   context.fillStyle = "white";
   context.font = "48px serif";
-  context.fillText("STAGEBONAS    "+stage*1000, 150, 360);
+  context.fillText("STAGE  BONUS    "+stage*1000, 150, 350);
   if(clearwait<=50){
-    context.fillText("LIFEBONAS       "+Math.floor(jiki.body.hp*20), 150, 440);
+    context.fillText("LIFE  BONUS       "+Math.floor(jiki.body.hp*20), 158, 440);
   }
 }
 if (gameover&&misstimer==0){
@@ -562,7 +582,11 @@ if (gameover&&misstimer==0){
     }
     context.beginPath();
     context.strokeStyle = "#008080";
-    context.rect(850, 130, boss.body.rage*3,30 );
+    if(boss.body.rageact>0){
+      context.rect(850, 130, boss.body.rageact/boss.body.rageactmax*300,30 );
+    }else{
+      context.rect(850, 130, boss.body.rage*3,30 );
+    }
     context.stroke();
     context.fillStyle = "#008080";
     context.fill();
@@ -688,12 +712,12 @@ function setblock() {
     if(substage==4){
       boss=new Boss(300,stage);
       bossstage=true;
-      bosswaitmax=100;
-      bossmovemax=100;
-      bosswait=bosswaitmax;
-      bossmove=0;
-      bossshotinterval=200;
-      bossshotwait=bossshotinterval;
+      // bosswaitmax=100;
+      // bossmovemax=100;
+      // bosswait=bosswaitmax;
+      // bossmove=0;
+      // bossshotinterval=200;
+      // bossshotwait=bossshotinterval;
     }
     break;
     case 3:
@@ -715,12 +739,12 @@ function setblock() {
       if(substage==4){
         boss=new Boss(300,stage);
         bossstage=true;
-        bosswaitmax=100;
-        bossmovemax=100
-        bosswait=bosswaitmax;
-        bossmove=0;
-        bossshotinterval=200;
-        bossshotwait=bossshotinterval;
+        // bosswaitmax=100;
+        // bossmovemax=100
+        // bosswait=bosswaitmax;
+        // bossmove=0;
+        // bossshotinterval=200;
+        // bossshotwait=bossshotinterval;
       }
   }
 }
@@ -801,7 +825,6 @@ function getitem(type, get){
       target:false,
       restitution: 1,
       friction: 0,
-      density: 1,
       angle: a,
       isStatic: s,
       render: {
@@ -816,11 +839,10 @@ function getitem(type, get){
   }
 }
 class BlockType{
-  constructor(ma, cl1, cl2,hp){
-    this.mass=ma;
+  constructor(de, cl1, cl2){
+    this.dens=de;
     this.coller1=cl1;
     this.coller2=cl2;
-    this.hp=hp;
   }
 }
 class Block {
@@ -832,10 +854,10 @@ class Block {
       jiki:false,
       shield:false,
       damegeRate:1,
-      hp:type.hp*(0.5+stage/2),
+      hp:type.dens*(0.9+stage/10)*r*300,
       restitution: 1,
       friction: 0,
-      massset: type.mass,
+      densset: type.dens,
       angle: a,
       isStatic: true,
       render: {
@@ -867,7 +889,6 @@ class Jiki {
       restitution: 1,
       hp:100,
       friction: 0,
-      density: 1,
       angle: 0,
       render: {
         fillStyle: "#2020ff",
@@ -903,6 +924,8 @@ class Boss {
       rage:0,
       ragetimer:0.05,
       ragerate:3,
+      rageact:0,
+      rageactmax:30,
       move:0,
       movewait:100,
       movemax:100,
@@ -911,7 +934,6 @@ class Boss {
       shotwait:200,
       bosstype:type,
       friction: 0,
-      density: 1,
       angle: 0,
       render: {
         fillStyle: "#ff69b4",
@@ -939,10 +961,10 @@ class Shield {
       jiki:false,
       restitution: 1,
       friction: 0,
-      density: 1,
       angle: jikiangle+Math.PI/2,
       render: {
         fillStyle: "#008080",
+        opacity:0.5,
 //        sprite: {
 //          texture:'./res/jiki_inv.png'
 //        }
