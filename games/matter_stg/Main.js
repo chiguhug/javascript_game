@@ -21,6 +21,7 @@ const WIDTH  = 830;
 const HEIGHT = 600;
 let wall_left, wall_right, wall_top;
 let jiki,boss;
+let rageobject;
 let usecontext=false;
 let stage = 1;
 let substage = 1;
@@ -138,6 +139,10 @@ const init = () => {
             pair.bodyB.collisionFilter.mask=commonCategory|bossCategory|jikiCategory;
             pair.bodyB.damegeRate=4;
           }
+        }else if(pair.bodyA.bossobject){
+          if (pair.bodyA.bosstype==1){
+            Body.setVelocity( pair.bodyB,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
+          }
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier){
             barrier=false;
@@ -171,6 +176,7 @@ const init = () => {
               Body.setDensity(pair.bodyA,pair.bodyA.densset);
               pair.bodyA.target=false;
               pair.bodyA.render.fillStyle=pair.bodyA.render.fillStyle2;
+              pair.bodyA.render.opacity=0.8;
               Body.setVelocity( pair.bodyA,{x: Math.cos(-blockangle)*pair.bodyB.speed*0.8, y: Math.sin(-blockangle)*pair.bodyB.speed*0.8});
               pair.bodyA.collisionFilter.category=1;
               let refrectangle=pair.bodyB.angle+blockangle*2;
@@ -196,9 +202,13 @@ const init = () => {
             pair.bodyA.collisionFilter.mask=commonCategory|bossCategory|jikiCategory;
             pair.bodyA.damegeRate=4;
           }
+        }else if(pair.bodyB.bossobject){
+          if (pair.bodyB.bosstype==1){
+            Body.setVelocity( pair.bodyA,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
+          }
         }else if (pair.bodyB.target) {
-          if(pair.bodyB.jiki&&barrier)
-            {barrier=false;
+          if(pair.bodyB.jiki&&barrier){
+              barrier=false;
               invincible=180;
               jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
             }
@@ -228,6 +238,7 @@ const init = () => {
               Body.setDensity(pair.bodyB,pair.bodyB.densset);
               pair.bodyB.target=false;
               pair.bodyB.render.fillStyle=pair.bodyB.render.fillStyle2;
+              pair.bodyB.render.opacity=0.8;
               Body.setVelocity( pair.bodyB,{x: Math.cos(-blockangle)*pair.bodyA.speed*0.8, y: Math.sin(-blockangle)*pair.bodyA.speed*0.8});
               pair.bodyB.collisionFilter.category=1;
               let refrectangle=pair.bodyA.angle+blockangle*2;
@@ -295,6 +306,7 @@ const init = () => {
       extendcheck();
       substage=1;
       stage++;
+      barrier=false;
       invincible=20;
       jiki.body.hp=100;
       boss.removeFromWorld();
@@ -454,7 +466,12 @@ if (boss.body.move>0){
 function rageaction() {
   switch(boss.body.bosstype){
     case 1:
-      
+      if(boss.body.rageact==29){
+        rageobject=new Bossobject(stage);
+      }else{
+      Matter.Body.setPosition(rageobject.body, {x:415,y:300-boss.body.rageact*20});
+      }
+      if(boss.body.rageact==0)rageobject.removeFromWorld();
       break;
   }
 }
@@ -528,6 +545,11 @@ if (clear){
 if(clearMainstage&&clearwait==100){
   clearblock();
   cleartama();
+  if (boss.body.rageact>0){
+    if(stage==1){
+      rageobject.removeFromWorld();
+    }
+  }
 }
 if(clearMainstage&&clearwait<=100){
   context.fillStyle = "white";
@@ -687,7 +709,7 @@ function shot(shotpower) {
 }
 //ボスの弾発射処理
 function bossshot(x,y) {
-  tamas.push(new Bosstama(x,y,(Math.random()*6)/6*Math.PI,0.05));
+  tamas.push(new Bosstama(x,y,Math.random()*Math.PI,0.05));
 }
 function setblock() {
   switch(stage){
@@ -696,9 +718,9 @@ function setblock() {
     case 4:
     for(i=1;i<=3;i++){
       for(y=0;y<4+substage;y++){
-        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+250,light,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*150+200,middle,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
-        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*150+150,heavy,Math.floor(Math.random()*(2+stage))+3,Math.random()*10+10,Math.random()*2-1));
+        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+250,light,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
+        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*150+200,middle,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
+        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*150+150,heavy,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
         setstage=true;
         clear=false;
         clearMainstage=false;
@@ -1060,6 +1082,31 @@ class Bosstama {
     World.remove(world, this.body);
   }
 }
+class Bossobject {
+  //　コンストラクタ宣言
+  constructor(type){
+    let optisons = {
+      bossobject:true,
+      bosstype:type,
+      render: {
+        fillStyle: "#008080",
+        opacity:0.3,
+      },
+      collisionFilter: {
+        category: commonCategory,
+      },
+      isStatic: true,
+      isSensor: true,
+    };
+    this.body = Bodies.rectangle(415,-280,830,600, optisons);
+    Composite.add(world, this.body);
+  }
+
+  removeFromWorld() {
+    World.remove(world, this.body);
+  }
+}
+
 class Item {
   //　コンストラクタ宣言
   constructor(x, y, type,img){
