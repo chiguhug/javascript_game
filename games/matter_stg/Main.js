@@ -411,7 +411,7 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
-  if(score>extend*2000){
+  if(score>extend*5000){
     zanki++;extend++;
   }
 }
@@ -472,7 +472,12 @@ function rageaction() {
       Matter.Body.setPosition(rageobject.body, {x:415,y:300-boss.body.rageact*20});
       }
       if(boss.body.rageact==0)rageobject.removeFromWorld();
-      break;
+    break;
+    case 2:
+      for(i=0;i<5;i++){
+        dropchance(60+Math.random()*810,50+Math.random()*50);
+      }
+    break;
   }
 }
   //　描画関数
@@ -613,8 +618,6 @@ if (gameover&&misstimer==0){
     context.fillStyle = "#008080";
     context.fill();
     context.closePath();
-  
-    
   }
   context.fillStyle = "black";
   context.fillText("Score", 850, 360);
@@ -674,6 +677,7 @@ function restart() {
   clearblock();
   cleartama();
   clearitem();
+  if(substage==4)boss.removeFromWorld();
   jikix=400;
   jikiy=550;
   jiki = new Jiki(jikix,jikiy);
@@ -734,12 +738,12 @@ function setblock() {
     if(substage==4){
       boss=new Boss(300,stage);
       bossstage=true;
-      // bosswaitmax=100;
-      // bossmovemax=100;
-      // bosswait=bosswaitmax;
-      // bossmove=0;
-      // bossshotinterval=200;
-      // bossshotwait=bossshotinterval;
+      if(stage==2){
+        boss.body.hp=200;
+        boss.body.hpmax=200;
+        boss.body.rageactmax=1;
+        boss.body.ragerate=1;
+      }
     }
     break;
     case 3:
@@ -761,12 +765,6 @@ function setblock() {
       if(substage==4){
         boss=new Boss(300,stage);
         bossstage=true;
-        // bosswaitmax=100;
-        // bossmovemax=100
-        // bosswait=bosswaitmax;
-        // bossmove=0;
-        // bossshotinterval=200;
-        // bossshotwait=bossshotinterval;
       }
   }
 }
@@ -800,10 +798,11 @@ function dropchance(x, y){
     items.push(new Item(x,y,2,'./res/item_p.png')); //パワーアップアイテムをセット
   } else if (rate < 40) { //抽選結果が40より小さいとき（40%の確率でアイテムを落とす）
     items.push(new Item(x,y,1,'./res/item_s.png')); //スコアアップアイテムをセット
+  } else if (stage==2){
+    items.push(new Item(x,y,0,'./res/item_s.png')); //ステージ2ギミックアイテムをセット
   }
 }
 function getitem(type, get){
-  if (get)score=score+50;
   switch(type){
     case 1://スコアアイテム
       score=score+200;
@@ -835,7 +834,20 @@ function getitem(type, get){
     case 5://残機アップアイテム
       zanki=zanki+1;
     break;
-
+    case 0://スコアアイテム
+      score=score+10;
+      break;
+  }
+  if (!get&&stage==2){
+    stagetimer=stagetimer-300;
+    if (bossstage){
+      boss.body.shotinterval=boss.body.shotinterval-5;
+      if(boss.body.shotinterval<=5)boss.body.shotinterval=5;
+      boss.body.movemax=boss.body.movemax-2;
+      if(boss.body.movemax<=5)boss.body.movemax=5;
+      boss.body.movewaitmax=boss.body.movewaitmax-2;
+      if(boss.body.movewaitmax<=5)boss.body.movewaitmax=5;
+    }
   }
 }
 
@@ -1134,6 +1146,7 @@ class Item {
       isSensor: true,
     };
     this.body = Bodies.circle(x, y, 60, optisons);
+    if(type==0)this.body.render.opacity=0.3;
     Composite.add(world, this.body);
   }
   isOffScreen() {
