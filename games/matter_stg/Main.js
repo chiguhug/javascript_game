@@ -149,7 +149,7 @@ const init = () => {
           if(pair.bodyA.jiki&&barrier){
             barrier=false;
             invincible=180;
-            jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
+            jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;d
           }
           if(!pair.bodyA.jiki||!invincible>0){
             let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
@@ -937,11 +937,13 @@ class Block {
   }
   isOffScreen() {
     let pos = this.body.position;
-    if(pos.x==NaN||pos.y==NaN){
-      console.log("BlockにてNaNが発生",pos.x,pos.y,this.body);
+    if((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700)){
+      return (true);  
+    }else if(!((pos.x>0)&&(pos.x<WIDTH)&&(pos.y>0)&&(pos.y<700))){
+      console.log("BlockにてNaNが発生?",pos.x,pos.y,this.body);
       return (true);
     }
-    return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
+    return (false);
   }
   removeFromWorld() {
     World.remove(world, this.body);
