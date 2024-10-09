@@ -140,8 +140,10 @@ const init = () => {
             pair.bodyB.damegeRate=4;
           }
         }else if(pair.bodyA.bossobject){
-          if (pair.bodyA.bosstype==1){
+          if(stage==1){
             Body.setVelocity( pair.bodyB,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
+          }else if(stage==3){
+            Body.setVelocity( pair.bodyB,{x: Math.cos(Math.random()*Math.PI)*3, y: Math.sin(Math.random()*Math.PI)*3});
           }
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier){
@@ -162,6 +164,7 @@ const init = () => {
           if(!pair.bodyA.jiki)score=score+damege;
           if(pair.bodyA.boss){
             pair.bodyA.rage=pair.bodyA.rage+pair.bodyA.ragerate*damege;
+            if(pair.bodyA.rage<0)pair.bodyA.rage=0;
             if(pair.bodyA.rage>100)pair.bodyA.rage=100;
           }
           if(pair.bodyA.hp<=0){
@@ -203,8 +206,10 @@ const init = () => {
             pair.bodyA.damegeRate=4;
           }
         }else if(pair.bodyB.bossobject){
-          if (pair.bodyB.bosstype==1){
+          if(stage==1){
             Body.setVelocity( pair.bodyA,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
+          }else if(stage==3){
+            Body.setVelocity( pair.bodyA,{x: Math.cos(Math.random()*Math.PI)*3, y: Math.sin(Math.random()*Math.PI)*3});
           }
         }else if (pair.bodyB.target) {
           if(pair.bodyB.jiki&&barrier){
@@ -220,10 +225,11 @@ const init = () => {
             let damege=pair.bodyA.speed*pair.bodyA.mass*pair.bodyA.damegeRate*power;
             // console.log(blockangle,incidence,colangle,power,damege);
             if(damege<0)damege=0;
-              pair.bodyB.hp=pair.bodyB.hp-damege;
+            pair.bodyB.hp=pair.bodyB.hp-damege;
           if(!pair.bodyB.jiki)score=score+damege;
           if(pair.bodyB.boss){
             pair.bodyB.rage=pair.bodyB.rage+pair.bodyB.ragerate*damege;
+            if(pair.bodyB.rage<0)pair.bodyB.rage=0;
             if(pair.bodyB.rage>100)pair.bodyB.rage=100;
           }
           if(pair.bodyB.hp<=0){
@@ -433,6 +439,7 @@ function move() {
       jiki.body.render.sprite.texture=jiki.body.render.sprite.miss;
       misstimer=120;
       zanki--;
+      barrier=false;
       if(zanki<0)gameover=true;
     }
   }
@@ -444,24 +451,24 @@ function move() {
 
 function bossmv() {
 //ボスの移動や待機の処理を行う
-if (boss.body.move>0){
-  Matter.Body.setPosition(boss.body, {x:boss.body.position.x+(bossmovet[0]-boss.body.position.x)/boss.body.move,y:boss.body.position.y+(bossmovet[1]-boss.body.position.y)/boss.body.move});
-  boss.body.move--;
-  if(boss.body.move==0)boss.body.movewait=boss.body.movewaitmax;
-}else{
-  boss.body.movewait--;
-  if(boss.body.movewait<=0){
-    boss.body.move=boss.body.movemax;
-    if(boss.body.position.x<160){
-      bossmovet[0]=60+Math.random()*(boss.body.position.x+40);
-    }else if(boss.body.position.x>670){
-      bossmovet[0]=boss.body.position.x-100+Math.random()*(870-boss.body.position.x);
-    }else{
-      bossmovet[0]=boss.body.position.x-100+Math.random()*200;
+  if (boss.body.move>0){
+    Matter.Body.setPosition(boss.body, {x:boss.body.position.x+(bossmovet[0]-boss.body.position.x)/boss.body.move,y:boss.body.position.y+(bossmovet[1]-boss.body.position.y)/boss.body.move});
+    boss.body.move--;
+    if(boss.body.move==0)boss.body.movewait=boss.body.movewaitmax;
+  }else{
+    boss.body.movewait--;
+    if(boss.body.movewait<=0){
+      boss.body.move=boss.body.movemax;
+      if(boss.body.position.x<160){
+        bossmovet[0]=60+Math.random()*(boss.body.position.x+40);
+      }else if(boss.body.position.x>670){
+        bossmovet[0]=boss.body.position.x-100+Math.random()*(870-boss.body.position.x);
+      }else{
+        bossmovet[0]=boss.body.position.x-100+Math.random()*200;
+      }
+      bossmovet[1]=50+Math.random()*50
     }
-    bossmovet[1]=50+Math.random()*50
   }
-}
 }
 function rageaction() {
   switch(boss.body.bosstype){
@@ -477,6 +484,14 @@ function rageaction() {
       for(i=0;i<5;i++){
         dropchance(60+Math.random()*810,50+Math.random()*50);
       }
+    break;
+    case 3:
+      if(boss.body.rageact==59){
+        rageobject=new Bossobject(stage);
+      }else{
+      Matter.Body.setPosition(rageobject.body, {x:415,y:50});
+      }
+      if(boss.body.rageact==0)rageobject.removeFromWorld();
     break;
   }
 }
@@ -499,6 +514,10 @@ function draw() {
     if (blocks[i].isOffScreen()) {
       blocks[i].removeFromWorld();
       blocks.splice(i,1);
+      if(stage==3){
+        for(j=0;j<blocks.length;j++){
+          blocks[j].body.hp=blocks[j].body.hp+10;
+      }}
     }else{
       i++;
     }
@@ -522,7 +541,6 @@ function draw() {
       }
     }
   }
-
   //ミスタイマーとミスした自機削除処理
   if(miss&&misstimer>0){
     misstimer--;
@@ -531,44 +549,43 @@ function draw() {
       power=Math.floor(power/2);
     }
   }
-  
 //シールドの持続時間管理と効果終了処理
-if(shielddur>0){
-  shielddur--;
-  if(shielddur==0&&shield!=null){
-    shield.removeFromWorld();
-  }
-}
-if(scharge<150)scharge++;
-
-context.clearRect(0,0,WIDTH,HEIGHT);
-if (clear){
-  clearimg = new Image();
-  clearimg.src = "res/text_gameclear_e.png";
-  context.drawImage(clearimg, 150, 160);
-}
-if(clearMainstage&&clearwait==100){
-  clearblock();
-  cleartama();
-  if (boss.body.rageact>0){
-    if(stage==1){
-      rageobject.removeFromWorld();
+  if(shielddur>0){
+    shielddur--;
+    if(shielddur==0&&shield!=null){
+      shield.removeFromWorld();
     }
   }
-}
-if(clearMainstage&&clearwait<=100){
-  context.fillStyle = "white";
-  context.font = "48px serif";
-  context.fillText("STAGE  BONUS    "+stage*1000, 150, 350);
-  if(clearwait<=50){
-    context.fillText("LIFE  BONUS       "+Math.floor(jiki.body.hp*20), 158, 440);
+  if(scharge<150)scharge++;
+
+  context.clearRect(0,0,WIDTH,HEIGHT);
+  if (clear){
+    clearimg = new Image();
+    clearimg.src = "res/text_gameclear_e.png";
+    context.drawImage(clearimg, 150, 160);
   }
-}
-if (gameover&&misstimer==0){
-  gameoverimg = new Image();
-  gameoverimg.src = "res/text_gameover_e.png";
-  context.drawImage(gameoverimg, 180, 180);
-}
+  if(clearMainstage&&clearwait==100){
+    clearblock();
+    cleartama();
+    if (boss.body.rageact>0){
+      if(stage==1){
+        rageobject.removeFromWorld();
+      }
+    }
+  }
+  if(clearMainstage&&clearwait<=100){
+    context.fillStyle = "white";
+    context.font = "48px serif";
+    context.fillText("STAGE  BONUS    "+stage*1000, 150, 350);
+    if(clearwait<=50){
+      context.fillText("LIFE  BONUS       "+Math.floor(jiki.body.hp*20), 158, 440);
+    }
+  }
+  if (gameover&&misstimer==0){
+    gameoverimg = new Image();
+    gameoverimg.src = "res/text_gameover_e.png";
+    context.drawImage(gameoverimg, 180, 180);
+  }
 
   //物理演算範囲外の描写
   context.clearRect(830, 30, 340, 270);
@@ -765,6 +782,14 @@ function setblock() {
       if(substage==4){
         boss=new Boss(300,stage);
         bossstage=true;
+        for(i=0;i<blocks.length;i++){
+          blocks[i].no=i;
+        }
+        boss.body.hp=1000;
+        boss.body.hpmax=1000;
+        boss.body.ragerate=-1;
+        boss.body.rageactmax=60;
+        boss.body.ragetimer=0.1;
       }
   }
 }
@@ -816,19 +841,23 @@ function getitem(type, get){
       }
     break;
     case 3://回復アイテム
-      jiki.body.hp=jiki.body.hp+30;
-      if (get)jiki.body.hp=jiki.body.hp+20;//直接獲得した時回復量UP
-      if (jiki.body.hp>100){//余剰回復分をスコアに換算してhp100に補正
-        score=score+2*(jiki.body.hp-100);
-        jiki.body.hp=100;
+      if(jiki.body.hp>0){
+        jiki.body.hp=jiki.body.hp+30;
+        if (get)jiki.body.hp=jiki.body.hp+20;//直接獲得した時回復量UP
+        if (jiki.body.hp>100){//余剰回復分をスコアに換算してhp100に補正
+          score=score+2*(jiki.body.hp-100);
+          jiki.body.hp=100;
+        }
       }
     break;
     case 4://バリアアイテム
-      if (barrier||invincible>0){//バリアアイテム待機中もしくは効果時間中はスコアに変換
-        score=score+100;
-      }else{
-        barrier=true;
-        jiki.body.render.sprite.texture=jiki.body.render.sprite.shield;
+      if(jiki.body.hp>0){
+        if (barrier||invincible>0){//バリアアイテム待機中もしくは効果時間中はスコアに変換
+          score=score+100;
+        }else{
+          barrier=true;
+          jiki.body.render.sprite.texture=jiki.body.render.sprite.shield;
+        }
       }
     break;
     case 5://残機アップアイテム
@@ -847,6 +876,7 @@ function getitem(type, get){
       if(boss.body.movemax<=5)boss.body.movemax=5;
       boss.body.movewaitmax=boss.body.movewaitmax-2;
       if(boss.body.movewaitmax<=5)boss.body.movewaitmax=5;
+      boss.body.ragetimer=boss.body.ragetimer+0.005;
     }
   }
 }
@@ -907,6 +937,10 @@ class Block {
   }
   isOffScreen() {
     let pos = this.body.position;
+    if(pos.x==NaN||pos.y==NaN){
+      console.log("BlockにてNaNが発生",pos.x,pos.y,this.body);
+      return (true);
+    }
     return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
   removeFromWorld() {
@@ -1048,6 +1082,10 @@ class Tama {
   isOffScreen() {
     let pos = this.body.position;
 //    console.log(pos,this.body.speed,this.body);
+    if(pos.x==NaN||pos.y==NaN){
+      console.log("TamaにてNaNが発生",pos.x,pos.y,this.body);
+      return (true);
+    }
     return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
   
@@ -1087,6 +1125,10 @@ class Bosstama {
   isOffScreen() {
     let pos = this.body.position;
 //    console.log(pos,this.body.speed,this.body);
+    if(pos.x==NaN||pos.y==NaN){
+      console.log("BossTamaにてNaNが発生",pos.x,pos.y,this.body);
+      return (true);
+    }
     return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 700));
   }
   
@@ -1113,7 +1155,6 @@ class Bossobject {
     this.body = Bodies.rectangle(415,-280,830,600, optisons);
     Composite.add(world, this.body);
   }
-
   removeFromWorld() {
     World.remove(world, this.body);
   }
@@ -1151,6 +1192,10 @@ class Item {
   }
   isOffScreen() {
     let pos = this.body.position;
+    if(pos.x==NaN||pos.y==NaN){
+      console.log("ItemにてNaNが発生",pos.x,pos.y,this.body);
+      return (true);
+    }
     return ((pos.x < 0) || (pos.x > WIDTH) || (pos.y < 0) || (pos.y > 900));
   }
   removeFromWorld() {
