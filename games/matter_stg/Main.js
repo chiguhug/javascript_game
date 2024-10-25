@@ -42,7 +42,7 @@ let keyr = false;
 let keyl = false;
 let keyu = false;
 let keyd = false;
-let power = 4;
+let power = 0;
 let ischarge=false;
 let chargepower=0;
 let refrectwait = 50;
@@ -140,16 +140,16 @@ const init = () => {
             pair.bodyB.damegeRate=4;
           }
         }else if(pair.bodyA.bossobject){
-          if(stage==1){
+          if(stage%3==1){
             Body.setVelocity( pair.bodyB,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
-          }else if(stage==3){
+          }else if(stage%3==0){
             Body.setVelocity( pair.bodyB,{x: Math.cos(Math.random()*Math.PI)*3, y: Math.sin(Math.random()*Math.PI)*3});
           }
         }else if (pair.bodyA.target) {
           if(pair.bodyA.jiki&&barrier){
             barrier=false;
             invincible=180;
-            jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;d
+            jiki.body.render.sprite.texture=jiki.body.render.sprite.muteki;
           }
           if(!pair.bodyA.jiki||!invincible>0){
             let blockangle=Math.atan2(pair.collision.tangent.x,pair.collision.tangent.y);
@@ -206,9 +206,9 @@ const init = () => {
             pair.bodyA.damegeRate=4;
           }
         }else if(pair.bodyB.bossobject){
-          if(stage==1){
+          if(stage%3==1){
             Body.setVelocity( pair.bodyA,{x: Math.cos(Math.random()*Math.PI)*30, y: Math.sin(Math.random()*Math.PI)*30});
-          }else if(stage==3){
+          }else if(stage%3==0){
             Body.setVelocity( pair.bodyA,{x: Math.cos(Math.random()*Math.PI)*3, y: Math.sin(Math.random()*Math.PI)*3});
           }
         }else if (pair.bodyB.target) {
@@ -417,7 +417,7 @@ function main() {
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
-  if(score>extend*5000){
+  if(score>extend*extend*1000){
     zanki++;extend++;
   }
 }
@@ -471,25 +471,49 @@ function bossmv() {
   }
 }
 function rageaction() {
-  switch(boss.body.bosstype){
+  switch(boss.body.bosstype%3){
     case 1:
       if(boss.body.rageact==29){
-        rageobject=new Bossobject(stage);
+        rageobject=new Bossobject(stage%3);
       }else{
       Matter.Body.setPosition(rageobject.body, {x:415,y:300-boss.body.rageact*20});
       }
       if(boss.body.rageact==0)rageobject.removeFromWorld();
     break;
     case 2:
-      for(i=0;i<5;i++){
+      for(i=0;i<3+stage;i++){
         dropchance(60+Math.random()*810,50+Math.random()*50);
       }
     break;
-    case 3:
+    case 0:
       if(boss.body.rageact==59){
-        rageobject=new Bossobject(stage);
+        rageobject=new Bossobject(stage%3);
       }else{
       Matter.Body.setPosition(rageobject.body, {x:415,y:50});
+      }
+      if(boss.body.rageact==20){
+        let i;
+        let dead;
+        for(j=0;j<boss.body.ragelevel;j++){
+          i = Math.floor(Math.random()*(27+stage*3));
+          dead=true;
+          for(k=0;k<blocks.length;k++){
+            if(blocks[k].no==i){
+              dead=false;
+              break;
+            }
+          }
+          if(dead){
+            if(i<9+stage){
+              blocks.push(new Block(i*742/(6+stage+substage)+100,300,light,4,30,0,i));
+            }else if(i<18+stage*2){
+              blocks.push(new Block((i-9-stage)*742/(6+stage+substage)+100,250,middle,4,30,0,i));
+            }else if(i<27+stage*3){
+              blocks.push(new Block((i-18-stage*2)*742/(6+stage+substage)+100,200,heavy,4,30,0,i));
+            }
+          }
+        }
+        boss.body.ragelevel++;
       }
       if(boss.body.rageact==0)rageobject.removeFromWorld();
     break;
@@ -514,10 +538,6 @@ function draw() {
     if (blocks[i].isOffScreen()) {
       blocks[i].removeFromWorld();
       blocks.splice(i,1);
-      if(stage==3){
-        for(j=0;j<blocks.length;j++){
-          blocks[j].body.hp=blocks[j].body.hp+10;
-      }}
     }else{
       i++;
     }
@@ -568,7 +588,7 @@ function draw() {
     clearblock();
     cleartama();
     if (boss.body.rageact>0){
-      if(stage==1){
+      if(stage%3<=1){
         rageobject.removeFromWorld();
       }
     }
@@ -714,8 +734,7 @@ function restart() {
 
 //自機の弾発射処理
 function shot(shotpower) {
-  let timer=50;
-  if (stagetimer<=0)timer=10;
+  let timer=10;
   tamas.push(new Tama(jikix,jikiy,jikiangle,shotpower,timer));
   switch(power){
     case 4:
@@ -733,64 +752,65 @@ function bossshot(x,y) {
   tamas.push(new Bosstama(x,y,Math.random()*Math.PI,0.05));
 }
 function setblock() {
-  switch(stage){
+  switch(stage%3){
     case 1:
     case 2:
-    case 4:
     for(i=1;i<=3;i++){
-      for(y=0;y<4+substage;y++){
-        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+250,light,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
-        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*150+200,middle,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
-        if(i==3)blocks.push(new Block(Math.random()*742+44,Math.random()*150+150,heavy,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1));
-        setstage=true;
-        clear=false;
-        clearMainstage=false;
-        maxstagetimer=4000+stage*1000;
-        stagetimer=maxstagetimer;
-        grav=1;
-        world.gravity.y=grav;
-        bossstage=false;
+      for(y=0;y<3+stage+substage;y++){
+        if(i==1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+250,light,Math.floor(Math.random()*(2+stage))+3,Math.random()*10*stage+10,Math.random()*2-1,0));
+        if(i==2)blocks.push(new Block(Math.random()*742+44,Math.random()*150+200,middle,Math.floor(Math.random()*(2+stage))+3,Math.random()*8*stage+10,Math.random()*2-1,0));
+        if(i==3&stage!=1)blocks.push(new Block(Math.random()*742+44,Math.random()*150+150,heavy,Math.floor(Math.random()*(2+stage))+3,Math.random()*6*stage+10,Math.random()*2-1,0));
       }
     }
+    setstage=true;
+    clear=false;
+    clearMainstage=false;
+    maxstagetimer=4000+stage*1000;
+    stagetimer=maxstagetimer;
+    grav=1;
+    world.gravity.y=grav;
+    bossstage=false;
     if(substage==4){
-      boss=new Boss(300,stage);
+      boss=new Boss(200+stage*100,stage);
       bossstage=true;
-      if(stage==2){
-        boss.body.hp=200;
-        boss.body.hpmax=200;
+      if(stage%3==2){
+        boss.body.hp=100+stage*50;
+        boss.body.hpmax=100+stage*50;
         boss.body.rageactmax=1;
         boss.body.ragerate=1;
       }
     }
     break;
-    case 3:
+    case 0:
       for(i=1;i<=3;i++){
-        for(y=0;y<8+substage;y++){
-          if(i==1)blocks.push(new Block(y*742/(9+substage)+100,300,light,4,30,0));
-          if(i==2)blocks.push(new Block(y*742/(9+substage)+100,250,middle,4,30,0));
-          if(i==3)blocks.push(new Block(y*742/(9+substage)+100,200,heavy,4,30,0));
-          setstage=true;
-          clear=false;
-          clearMainstage=false;
-          maxstagetimer=4000+stage*1000;
-          stagetimer=maxstagetimer;
-          grav=1;
-          world.gravity.y=grav;
-          bossstage=false;
+        for(y=0;y<5+stage+substage;y++){
+          if(i==1)blocks.push(new Block(y*742/(6+stage+substage)+100,300,light,4,30,0,0));
+          if(i==2)blocks.push(new Block(y*742/(6+stage+substage)+100,250,middle,4,30,0,0));
+          if(i==3)blocks.push(new Block(y*742/(6+stage+substage)+100,200,heavy,4,30,0,0));
         }
       }
+      setstage=true;
+      clear=false;
+      clearMainstage=false;
+      maxstagetimer=4000+stage*1000;
+      stagetimer=maxstagetimer;
+      grav=1;
+      world.gravity.y=grav;
+      bossstage=false;
       if(substage==4){
         boss=new Boss(300,stage);
         bossstage=true;
         for(i=0;i<blocks.length;i++){
           blocks[i].no=i;
         }
-        boss.body.hp=1000;
-        boss.body.hpmax=1000;
+        boss.body.hp=100+stage*300;
+        boss.body.hpmax=100+stage*300;
         boss.body.ragerate=-1;
         boss.body.rageactmax=60;
         boss.body.ragetimer=0.1;
+        boss.body.ragelevel=stage;
       }
+    break;
   }
 }
 function clearblock() {
@@ -823,7 +843,7 @@ function dropchance(x, y){
     items.push(new Item(x,y,2,'./res/item_p.png')); //パワーアップアイテムをセット
   } else if (rate < 40) { //抽選結果が40より小さいとき（40%の確率でアイテムを落とす）
     items.push(new Item(x,y,1,'./res/item_s.png')); //スコアアップアイテムをセット
-  } else if (stage==2){
+  } else if (stage%3==2){
     items.push(new Item(x,y,0,'./res/item_s.png')); //ステージ2ギミックアイテムをセット
   }
 }
@@ -867,7 +887,7 @@ function getitem(type, get){
       score=score+10;
       break;
   }
-  if (!get&&stage==2){
+  if (!get&&stage%3==2){
     stagetimer=stagetimer-300;
     if (bossstage){
       boss.body.shotinterval=boss.body.shotinterval-5;
@@ -911,7 +931,7 @@ class BlockType{
 }
 class Block {
   //　コンストラクタ宣言
-  constructor(x, y, type,hen, r, a){
+  constructor(x, y, type,hen, r, a,No){
     this.type=type;
     let optisons = {
       target:true,
@@ -933,6 +953,7 @@ class Block {
       },
     };
     this.body = Bodies.polygon(x, y, hen, r, optisons);
+    this.no=No;
     Composite.add(world, this.body);
   }
   isOffScreen() {
