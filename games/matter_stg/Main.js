@@ -20,11 +20,12 @@ bossCategory = 0x0008; // ボスオブジェクトのカテゴリ
 const WIDTH  = 830;
 const HEIGHT = 600;
 let wall_left, wall_right, wall_top;
+let gamestart=false;
 let jiki,boss;
 let rageobject;
 let usecontext=false;
-let stage = 1;
-let substage = 1;
+let stage = 0;
+let substage = 0;
 let maxstagetimer = 0;
 let stagetimer = 0;
 let bossstage = false;
@@ -271,7 +272,12 @@ const init = () => {
   
   canvas.addEventListener("mousedown", event => {
 //    console.log(event.button);//event.buttonが0：左クリック　2右クリック　1ホイールクリック
-    if(!miss&&setstage&&!clear&&event.button==0){
+    if(!gamestart){
+      gamestart=true;
+      stage=1;
+      substage=1;
+      setblock();
+    }else if(!miss&&setstage&&!clear&&event.button==0){
       ischarge=true;
       chargepower=0;
     }else if(event.button==2&&scharge==150&&!clear&&!miss){
@@ -363,12 +369,12 @@ const init = () => {
   context.fillStyle = "red";
   context.fill();
   context.closePath();
-  setblock();
+  gamestart=false;
   main();
 }
 //　Main関数
-
 function main() {
+  if(stage!=0){
   if(invincible>0){
     invincible--;
     if(invincible==0){
@@ -412,8 +418,10 @@ function main() {
   }
   extendcheck();
   move();
+}
   draw();
   if (bossstage&&!clear)bossmv();
+
   window.requestAnimationFrame(main);
 }
 function extendcheck(){
@@ -580,9 +588,18 @@ function draw() {
 
   context.clearRect(0,0,WIDTH,HEIGHT);
   if (clear){
+    if(gamestart){
     clearimg = new Image();
     clearimg.src = "res/text_gameclear_e.png";
     context.drawImage(clearimg, 150, 160);
+    }else {
+      context.fillStyle = "white";
+      context.font = "60px serif";
+      context.fillText("MATTER STG", 180, 220);
+      context.font = "48px serif";
+      context.fillText("Push Click to START", 150, 350);
+    }
+
   }
   if(clearMainstage&&clearwait==100){
     clearblock();
